@@ -1,0 +1,11 @@
+# Changes here will be overwritten by Copier
+_commit: aec7e2a
+_src_path: ../Dev-Oc-Collectif/python-template
+description: A tool to manage world building and story writting.
+email: contact@cdubos.fr
+full_name: cdubos-fr
+layout: flat
+module_name: ether
+project_name: ether
+python_version: '3.14'
+version: 0.0.0

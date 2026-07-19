@@ -1,0 +1,88 @@
+default_stages: ['pre-commit']
+default_install_hook_types: [pre-commit, commit-msg, pre-push]
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: 3e8a8703264a2f4a69428a0aa4dcb512790b2c8c  # v6.0.0
+    hooks:
+      - id: trailing-whitespace
+      - id: end-of-file-fixer
+      - id: check-yaml
+      - id: check-toml
+      - id: debug-statements
+      - id: check-merge-conflict
+      - id: mixed-line-ending
+
+  - repo: local
+    hooks:
+      - id: local-ssort
+        name: ssort
+        entry: uv run ssort
+        language: system
+        types: [python]
+
+      - id: local-ruff-check
+        name: ruff check
+        entry: uv run ruff check --force-exclude --fix --exit-non-zero-on-fix
+        language: system
+        types: [python]
+
+      - id: local-ruff-format
+        name: ruff format
+        entry: uv run ruff format --force-exclude --exit-non-zero-on-fix
+        language: system
+        types: [python]
+
+      - id: local-ssort
+        name: ssort
+        entry: uv run ssort
+        language: system
+        types: [python]
+
+      - id: local-mypy
+        name: mypy check
+        entry: uv run mypy
+        require_serial: true
+        language: system
+        types: [python]
+
+      - id: local-ty
+        name: ty check
+        entry: uv run ty check
+        require_serial: true
+        language: system
+        types: [python]
+
+      - id: local-zizmor
+        name: zizmor
+        entry: uv run zizmor
+        language: system
+        files: ^\.github\/workflows\/.*\.yaml
+        require_serial: true
+        types: [yaml]
+
+      - id: local-audit
+        name: audit
+        entry: uv audit --preview-features audit
+        language: system
+        pass_filenames: false
+
+      - id: local-bandit
+        name: bandit
+        entry: uv run bandit
+        language: system
+        exclude: ^tests\/.*\.py
+        require_serial: true
+        types: [python]
+
+      - id: local-justfile
+        name: justfile check
+        entry: just --check --fmt
+        language: system
+        files: ^Justfile$
+        pass_filenames: false
+        require_serial: true
+
+  - repo: https://github.com/commitizen-tools/commitizen
+    rev: 953e1ba4599cc3143122ed5c3e8de3d6dfd5524d  # v4.16.2
+    hooks:
+      - id: commitizen

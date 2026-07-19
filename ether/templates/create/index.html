@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% block content %}
+  <h1>Créer</h1>
+
+  <article>
+    <h2>Nouvelle fiche</h2>
+    <p>Choisissez une catégorie (il faut un <code>_template.md</code> dans son dossier) :</p>
+    <div class="card-grid">
+      {% for category in categories %}
+        <a href="/create/{{ category }}" role="button" class="outline">{{ category }}</a>
+      {% endfor %}
+    </div>
+  </article>
+
+  <article>
+    <h2>Nouvelle section sur une fiche existante</h2>
+    <ul>
+      {% for item in items %}
+        <li><a href="/item/{{ item.id }}/create-section">{{ item.name }}</a> <small>({{ item.category }})</small></li>
+      {% endfor %}
+    </ul>
+  </article>
+{% endblock %}

@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+{% block content %}
+  <nav aria-label="breadcrumb"><a href="/sequencer">Séquencier</a> / <a href="/sequencer/actes/{{ chapitre.acte_id }}">Acte</a> / Chapitre {{ chapitre.numero }}</nav>
+  <h1>Chapitre {{ chapitre.numero }} — {{ chapitre.titre }}</h1>
+  <p>{{ chapitre.objectif_narratif }}</p>
+  <p><small>État initial : {{ chapitre.etat_initial_protagoniste }} → État final : {{ chapitre.etat_final_protagoniste }}</small></p>
+
+  <article>
+    <h3>Fiches liées (univers)</h3>
+    <p><small>Ids de fiches de l'univers pertinentes pour ce chapitre (personnages, lieux, arcs...) — injectées dans le contexte de génération.</small></p>
+    <form method="post" action="/sequencer/chapitres/{{ chapitre.id }}/fiches-liees">
+      <input type="text" name="fiches_liees" value="{{ fiches_liees_text }}" placeholder="ex: ariane-clermont, le-concile">
+      <button type="submit">Enregistrer</button>
+    </form>
+  </article>
+
+  <h2>Scènes</h2>
+  <ul>
+    {% for partie in parties %}
+      <li>
+        <a href="/redaction/{{ partie.id }}">Scène {{ partie.numero }}</a>
+        — {{ partie.objectif }} <span class="tag">{{ partie.statut }}</span>
+      </li>
+    {% else %}
+      <li><small>Aucune scène pour l'instant.</small></li>
+    {% endfor %}
+  </ul>
+
+  <article>
+    <h2>Nouvelle scène</h2>
+    <form method="post" action="/sequencer/chapitres/{{ chapitre.id }}/parties">
+      <div class="grid">
+        <label>Numéro <input type="number" name="numero" required></label>
+        <label>Objectif <input type="text" name="objectif"></label>
+      </div>
+      <div class="grid">
+        <label>Événement clé <input type="text" name="evenement_cle"></label>
+        <label>Impact sur le protagoniste <input type="text" name="impact_sur_protagoniste"></label>
+      </div>
+      <button type="submit">Créer la scène</button>
+    </form>
+  </article>
+{% endblock %}

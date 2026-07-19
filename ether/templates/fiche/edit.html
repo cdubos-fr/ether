@@ -1,0 +1,66 @@
+{% extends "base.html" %}
+{% block content %}
+  <nav aria-label="breadcrumb"><a href="/">Univers</a> / <a href="/browse/{{ item.category }}">{{ item.category }}</a> / <a href="/item/{{ item.id }}">{{ item.name }}</a> / modifier</nav>
+
+  <h1>Modifier — {{ item.name }}</h1>
+  <p><small><code>{{ item.relative_path }}</code></small></p>
+
+  <article>
+    <h2>Fiche entière</h2>
+    <form method="post" action="/item/{{ item.id }}/edit">
+      <div class="grid">
+        <label>Nom
+          <input type="text" name="name" value="{{ meta.name }}" required>
+        </label>
+        <label>Statut
+          <select name="status">
+            {% for choice in ['canon', 'theorise', 'brouillon'] %}
+              <option value="{{ choice }}" {% if meta.status == choice %}selected{% endif %}>{{ choice }}</option>
+            {% endfor %}
+          </select>
+        </label>
+      </div>
+      <label>Alias (séparés par des virgules)
+        <input type="text" name="aliases" value="{{ aliases_text }}">
+      </label>
+      <label>Tags (séparés par des virgules)
+        <input type="text" name="tags" value="{{ tags_text }}">
+      </label>
+      <label>Related — ids d'autres fiches (séparés par des virgules)
+        <input type="text" name="related" value="{{ related_text }}">
+      </label>
+      <label>Mise à jour
+        <input type="text" name="updated" value="{{ meta.updated }}" placeholder="AAAA-MM-JJ">
+      </label>
+      <label>Corps (markdown)
+        <textarea name="body" rows="20">{{ body }}</textarea>
+      </label>
+      <button type="submit">Enregistrer la fiche</button>
+    </form>
+  </article>
+
+  <article>
+    <h2>Modifier une section</h2>
+    <p><small>Remplace (ou complète) uniquement une section <code>##</code> — ne touche pas au reste du fichier.</small></p>
+    <form method="post" action="/item/{{ item.id }}/section">
+      <div class="grid">
+        <label>Section
+          <input type="text" name="heading" list="sections-list" placeholder="Ex: Voir aussi" required>
+          <datalist id="sections-list">
+            {% for section in sections %}<option value="{{ section }}">{% endfor %}
+          </datalist>
+        </label>
+        <label>Mode
+          <select name="mode">
+            <option value="replace">Remplacer</option>
+            <option value="append">Compléter</option>
+          </select>
+        </label>
+      </div>
+      <label>Contenu
+        <textarea name="content" rows="8"></textarea>
+      </label>
+      <button type="submit">Enregistrer la section</button>
+    </form>
+  </article>
+{% endblock %}

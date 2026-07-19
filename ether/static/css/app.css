@@ -1,0 +1,84 @@
+.tag {
+  display: inline-block;
+  padding: 0.1rem 0.5rem;
+  margin: 0 0.25rem 0.25rem 0;
+  border-radius: 1rem;
+  background: var(--pico-muted-border-color);
+  font-size: 0.8rem;
+  text-decoration: none;
+  color: inherit;
+}
+
+a.tag:hover {
+  background: var(--pico-primary-focus);
+}
+
+.dangling {
+  color: var(--pico-del-color, #c0392b);
+}
+
+/* Pico's default .container caps out well short of a typical desktop
+   viewport; widen it on larger screens instead of leaving a narrow,
+   cramped column of content surrounded by empty margins. */
+@media (min-width: 1200px) {
+  .container {
+    max-width: 1400px;
+  }
+}
+
+@media (min-width: 1600px) {
+  .container {
+    max-width: 1720px;
+  }
+}
+
+/* Card-style listings (categories, "Nouvelle fiche" targets): flexbox
+   instead of Pico's default .grid (a rigid equal-width-per-direct-child
+   CSS grid, which forces long category/fiche names into narrow columns
+   and breaks words). Cards grow/shrink and wrap naturally around a
+   comfortable minimum width instead of snapping to fixed tracks. */
+.card-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--pico-spacing, 1rem);
+}
+
+.card-grid > * {
+  flex: 1 1 240px;
+  min-width: 200px;
+}
+
+/* Fiche detail: give the reading column most of the width and keep the
+   related/backlinks sidebar a comfortably wide, flexible strip instead of
+   splitting the page 50/50 (Pico's default .grid) or pinning it to a
+   narrow fixed track that wraps long fiche titles awkwardly. */
+.item-layout {
+  display: flex;
+  flex-direction: column;
+  gap: var(--pico-spacing, 1rem);
+}
+
+@media (min-width: 900px) {
+  .item-layout {
+    flex-direction: row;
+    align-items: flex-start;
+  }
+
+  .item-layout > article {
+    flex: 3 1 600px;
+    min-width: 0; /* let prose shrink/wrap at spaces instead of overflowing */
+  }
+
+  .item-layout > aside {
+    flex: 1 1 320px;
+    min-width: 280px;
+    position: sticky;
+    top: var(--pico-spacing, 1rem);
+  }
+}
+
+/* Style manifest: label/content/remove-button rows, not equal thirds. */
+.rule-row.grid {
+  grid-template-columns: minmax(140px, 1fr) minmax(0, 2fr) auto;
+  align-items: center;
+}

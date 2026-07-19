@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+{% block content %}
+  <h1>Univers</h1>
+  <p><small>{{ total_items }} fiche(s) indexée(s) depuis <code>{{ univers_path }}</code></small></p>
+
+  {% if categories %}
+    <div class="card-grid">
+      {% for category, count in categories %}
+        <article>
+          <h3><a href="/browse/{{ category }}">{{ category }}</a></h3>
+          <p>{{ count }} fiche{{ 's' if count != 1 else '' }}</p>
+        </article>
+      {% endfor %}
+    </div>
+  {% else %}
+    <p>Aucune fiche indexée. Lancez <code>ether index &lt;chemin&gt;</code> pour indexer votre univers.</p>
+  {% endif %}
+{% endblock %}

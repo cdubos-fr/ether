@@ -1,0 +1,90 @@
+{% extends "base.html" %}
+{% block content %}
+  <h1>Manifeste d'écriture</h1>
+  <p><small>Injecté tel quel dans les prompts de création et de rédaction — la forme (les sections) est fixe, le contenu est 100% votre voix d'auteur.</small></p>
+
+  <form method="post" action="/style">
+    <label>Nom du projet
+      <input type="text" name="project_name" value="{{ form.project_name }}" required>
+    </label>
+
+    <article>
+      <h2>Intention thématique</h2>
+      <textarea name="intention_thematique" rows="3">{{ form.intention_thematique }}</textarea>
+    </article>
+
+    <article>
+      <h2>Point de vue &amp; voix narrative</h2>
+      <div class="rule-list" data-prefix="pov">
+        {% for rule in form.point_de_vue %}
+          <div class="rule-row grid">
+            <input type="text" name="pov_label" value="{{ rule.label }}" placeholder="Ex: Personne / temps">
+            <input type="text" name="pov_content" value="{{ rule.content }}" placeholder="Ex: première personne, présent">
+            <button type="button" class="secondary outline remove-rule">Retirer</button>
+          </div>
+        {% endfor %}
+      </div>
+      <button type="button" class="outline add-rule" data-target="pov">+ Ajouter</button>
+    </article>
+
+    <article>
+      <h2>Registre &amp; ton</h2>
+      <textarea name="registre_ton" rows="3">{{ form.registre_ton }}</textarea>
+    </article>
+
+    <article>
+      <h2>Règles de prose</h2>
+      <div class="rule-list" data-prefix="regle">
+        {% for rule in form.regles_prose %}
+          <div class="rule-row grid">
+            <input type="text" name="regle_label" value="{{ rule.label }}" placeholder="Ex: Rythme">
+            <input type="text" name="regle_content" value="{{ rule.content }}" placeholder="Ex: phrases courtes en tension">
+            <button type="button" class="secondary outline remove-rule">Retirer</button>
+          </div>
+        {% endfor %}
+      </div>
+      <button type="button" class="outline add-rule" data-target="regle">+ Ajouter une règle</button>
+    </article>
+
+    <article>
+      <h2>À éviter</h2>
+      <textarea name="a_eviter" rows="3">{{ form.a_eviter }}</textarea>
+    </article>
+
+    <article>
+      <h2>Format de sortie</h2>
+      <textarea name="format_sortie" rows="3">{{ form.format_sortie }}</textarea>
+    </article>
+
+    <button type="submit">Enregistrer</button>
+  </form>
+
+  <template id="rule-row-template">
+    <div class="rule-row grid">
+      <input type="text" placeholder="Label">
+      <input type="text" placeholder="Contenu">
+      <button type="button" class="secondary outline remove-rule">Retirer</button>
+    </div>
+  </template>
+
+  <script>
+    document.querySelectorAll('.add-rule').forEach(function (button) {
+      button.addEventListener('click', function () {
+        var prefix = button.dataset.target;
+        var list = document.querySelector('.rule-list[data-prefix="' + prefix + '"]');
+        var template = document.getElementById('rule-row-template');
+        var row = template.content.cloneNode(true);
+        var inputs = row.querySelectorAll('input');
+        inputs[0].name = prefix + '_label';
+        inputs[1].name = prefix + '_content';
+        list.appendChild(row);
+      });
+    });
+
+    document.addEventListener('click', function (event) {
+      if (event.target.classList.contains('remove-rule')) {
+        event.target.closest('.rule-row').remove();
+      }
+    });
+  </script>
+{% endblock %}

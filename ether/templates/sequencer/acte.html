@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% block content %}
+  <nav aria-label="breadcrumb"><a href="/sequencer">Séquencier</a> / <a href="/sequencer/tomes/{{ acte.tome_id }}">Tome</a> / Acte {{ acte.numero }}</nav>
+  <h1>Acte {{ acte.numero }} — {{ acte.titre }}</h1>
+  <p><small>{{ acte.fonction_narrative }}</small></p>
+
+  <ul>
+    {% for chapitre in chapitres %}
+      <li><a href="/sequencer/chapitres/{{ chapitre.id }}">Chapitre {{ chapitre.numero }} — {{ chapitre.titre }}</a></li>
+    {% else %}
+      <li><small>Aucun chapitre pour l'instant.</small></li>
+    {% endfor %}
+  </ul>
+
+  <article>
+    <h2>Nouveau chapitre</h2>
+    <form method="post" action="/sequencer/actes/{{ acte.id }}/chapitres">
+      <div class="grid">
+        <label>Numéro <input type="number" name="numero" required></label>
+        <label>Titre <input type="text" name="titre" required></label>
+      </div>
+      <label>Objectif narratif <input type="text" name="objectif_narratif"></label>
+      <div class="grid">
+        <label>État initial protagoniste <input type="text" name="etat_initial_protagoniste"></label>
+        <label>État final visé <input type="text" name="etat_final_protagoniste"></label>
+      </div>
+      <button type="submit">Créer le chapitre</button>
+    </form>
+  </article>
+{% endblock %}

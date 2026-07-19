@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% block content %}
+  <nav aria-label="breadcrumb"><a href="/sequencer">Séquencier</a> / <a href="/sequencer/chapitres/{{ partie.chapitre_id }}">Chapitre</a> / Scène {{ partie.numero }}</nav>
+  <h1>Rédaction — Scène {{ partie.numero }}</h1>
+  <p>{{ partie.objectif }} <span class="tag">{{ partie.statut }}</span></p>
+
+  {% if partie.contenu_genere %}
+    <details>
+      <summary>Contenu validé actuel</summary>
+      <article>{{ partie.contenu_genere | markdown }}</article>
+    </details>
+  {% endif %}
+
+  <form method="post" action="/redaction/{{ partie.id }}/generer">
+    <label>Instruction
+      <textarea name="instruction" rows="3" required>{{ instruction }}</textarea>
+    </label>
+    <label>Contraintes
+      <textarea name="contraintes" rows="2">{{ contraintes }}</textarea>
+    </label>
+    <button type="submit">Générer</button>
+  </form>
+
+  {% if draft %}
+    <article>
+      <h2>Brouillon — à relire avant de valider</h2>
+      <form method="post" action="/redaction/{{ partie.id }}/valider">
+        <textarea name="draft" rows="16">{{ draft }}</textarea>
+        <button type="submit">Valider la scène</button>
+      </form>
+    </article>
+  {% endif %}
+{% endblock %}

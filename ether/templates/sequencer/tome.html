@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% block content %}
+  <nav aria-label="breadcrumb"><a href="/sequencer">Séquencier</a> / Tome {{ tome.numero }}</nav>
+  <h1>Tome {{ tome.numero }} — {{ tome.titre }}</h1>
+  <p>{{ tome.theme_specifique }}</p>
+  <p><small>{{ tome.question_centrale }}</small></p>
+
+  <ul>
+    {% for acte in actes %}
+      <li><a href="/sequencer/actes/{{ acte.id }}">Acte {{ acte.numero }} — {{ acte.titre }}</a></li>
+    {% else %}
+      <li><small>Aucun acte pour l'instant.</small></li>
+    {% endfor %}
+  </ul>
+
+  <article>
+    <h2>Nouvel acte</h2>
+    <form method="post" action="/sequencer/tomes/{{ tome.id }}/actes">
+      <div class="grid">
+        <label>Numéro <input type="number" name="numero" required></label>
+        <label>Titre <input type="text" name="titre" required></label>
+      </div>
+      <label>Fonction narrative <input type="text" name="fonction_narrative"></label>
+      <button type="submit">Créer l'acte</button>
+    </form>
+  </article>
+{% endblock %}

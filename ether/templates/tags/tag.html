@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% block content %}
+  <nav aria-label="breadcrumb"><a href="/tags">Tags</a> / {{ tag }}</nav>
+  <h1>Tag : {{ tag }}</h1>
+
+  <table>
+    <thead>
+      <tr>
+        <th>Nom</th>
+        <th>Type</th>
+        <th>Catégorie</th>
+        <th>Statut</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for item in items %}
+        <tr>
+          <td><a href="/item/{{ item.id }}">{{ item.name }}</a></td>
+          <td>{{ item.type }}</td>
+          <td><a href="/browse/{{ item.category }}">{{ item.category }}</a></td>
+          <td>{{ item.status }}</td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+{% endblock %}

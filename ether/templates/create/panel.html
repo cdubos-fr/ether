@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% block content %}
+  <nav aria-label="breadcrumb"><a href="/create">Créer</a> / {{ category }}</nav>
+  <h1>Nouvelle fiche — {{ category }}</h1>
+
+  <form method="post" action="/create/{{ category }}/generate">
+    <label>Ce que vous voulez pour cette fiche
+      <textarea name="brief" rows="4" placeholder="Ex: un mentor déchu, lié à Ariane, allié secret du Concile...">{{ brief }}</textarea>
+    </label>
+    <button type="submit">Générer avec l'IA</button>
+  </form>
+
+  {% if draft %}
+    <article>
+      <h2>Brouillon — à relire avant d'enregistrer</h2>
+      <form method="post" action="/create/{{ category }}/save">
+        <label>Contenu de la fiche (frontmatter + corps, modifiable)
+          <textarea name="draft" rows="24">{{ draft }}</textarea>
+        </label>
+        <button type="submit">Enregistrer comme nouvelle fiche</button>
+      </form>
+    </article>
+  {% endif %}
+{% endblock %}

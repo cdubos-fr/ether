@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% block content %}
+  <h1>Tags</h1>
+  <p><small>Navigation transversale, indépendante des catégories — ex. retrouver toutes les fiches d'un même tag, quelle que soit leur catégorie.</small></p>
+
+  {% if tags %}
+    <div class="card-grid">
+      {% for tag, count in tags %}
+        <a href="/tags/{{ tag }}" role="button" class="outline">{{ tag }} <small>({{ count }})</small></a>
+      {% endfor %}
+    </div>
+  {% else %}
+    <p>Aucun tag indexé.</p>
+  {% endif %}
+{% endblock %}

@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{{ title if title else 'ether' }}</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', path='css/app.css') }}">
+    <script src="https://unpkg.com/htmx.org@2.0.4" defer></script>
+  </head>
+  <body>
+    <header class="container">
+      <nav>
+        <ul>
+          <li><strong><a href="/">ether</a></strong></li>
+        </ul>
+        <ul>
+          <li><a href="/">Univers</a></li>
+          <li><a href="/tags">Tags</a></li>
+          <li><a href="/create">Créer</a></li>
+          <li><a href="/sequencer">Séquencier</a></li>
+          <li><a href="/style">Manifeste</a></li>
+          {% block nav_extra %}{% endblock %}
+        </ul>
+      </nav>
+    </header>
+
+    <main class="container">
+      {% block content %}{% endblock %}
+    </main>
+
+    <footer class="container">
+      <small>ether — {{ now().year if now else '' }}</small>
+    </footer>
+  </body>
+</html>

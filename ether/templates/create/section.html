@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% block content %}
+  <nav aria-label="breadcrumb"><a href="/create">Créer</a> / <a href="/item/{{ item.id }}">{{ item.name }}</a> / nouvelle section</nav>
+  <h1>Nouvelle section — {{ item.name }}</h1>
+
+  <form method="post" action="/item/{{ item.id }}/create-section/generate">
+    <div class="grid">
+      <label>Titre de section
+        <input type="text" name="heading" value="{{ heading }}" placeholder="Ex: Voir aussi" required>
+      </label>
+    </div>
+    <label>Ce que vous voulez dans cette section
+      <textarea name="brief" rows="4">{{ brief }}</textarea>
+    </label>
+    <button type="submit">Générer avec l'IA</button>
+  </form>
+
+  {% if draft %}
+    <article>
+      <h2>Brouillon — à relire avant d'enregistrer</h2>
+      <form method="post" action="/item/{{ item.id }}/create-section/save">
+        <input type="hidden" name="heading" value="{{ heading }}">
+        <label>Contenu de la section (modifiable)
+          <textarea name="draft" rows="12">{{ draft }}</textarea>
+        </label>
+        <label>Mode
+          <select name="mode">
+            <option value="replace">Remplacer</option>
+            <option value="append">Compléter</option>
+          </select>
+        </label>
+        <button type="submit">Enregistrer la section</button>
+      </form>
+    </article>
+  {% endif %}
+{% endblock %}

@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+{% block content %}
+  <nav aria-label="breadcrumb"><a href="/">Univers</a> / <a href="/browse/{{ item.category }}">{{ item.category }}</a> / {{ item.name }}</nav>
+
+  <hgroup>
+    <h1>
+      {{ item.name }}
+      <a href="/item/{{ item.id }}/edit" role="button" class="outline" style="font-size: 0.9rem;">Modifier</a>
+      <a href="/item/{{ item.id }}/create-section" role="button" class="outline" style="font-size: 0.9rem;">+ Section IA</a>
+    </h1>
+    <p>{{ item.type }} · {{ item.status }} {% if item.updated %}· mis à jour {{ item.updated }}{% endif %}</p>
+  </hgroup>
+
+  {% if tags %}
+    <p>
+      {% for tag in tags %}<a href="/tags/{{ tag }}" class="tag">{{ tag }}</a> {% endfor %}
+    </p>
+  {% endif %}
+
+  <div class="item-layout">
+    <article>
+      {{ body | markdown }}
+    </article>
+
+    <aside>
+      <details open>
+        <summary>Fiche</summary>
+        <ul>
+          <li><strong>id :</strong> <code>{{ item.id }}</code></li>
+          {% if aliases %}<li><strong>alias :</strong> {{ aliases | join(', ') }}</li>{% endif %}
+          <li><strong>chemin :</strong> <code>{{ item.relative_path }}</code></li>
+        </ul>
+      </details>
+
+      <details open>
+        <summary>Related ({{ outgoing | length }})</summary>
+        <ul>
+          {% for link in outgoing %}
+            <li>
+              {% if link.item %}
+                <a href="/item/{{ link.target_id }}">{{ link.item.name }}</a>
+              {% else %}
+                <span class="dangling" title="référence introuvable">{{ link.target_id }} ⚠</span>
+              {% endif %}
+            </li>
+          {% else %}
+            <li><small>Aucun</small></li>
+          {% endfor %}
+        </ul>
+      </details>
+
+      <details open>
+        <summary>Référencé par ({{ backlinks | length }})</summary>
+        <ul>
+          {% for link in backlinks %}
+            <li><a href="/item/{{ link.source_id }}">{{ link.item.name if link.item else link.source_id }}</a></li>
+          {% else %}
+            <li><small>Aucun</small></li>
+          {% endfor %}
+        </ul>
+      </details>
+    </aside>
+  </div>
+{% endblock %}

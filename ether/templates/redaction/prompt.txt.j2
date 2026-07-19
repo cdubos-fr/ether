@@ -1,0 +1,33 @@
+[MANIFESTE DE STYLE]
+{{ ctx.manifeste if ctx.manifeste else "(aucun manifeste défini)" }}
+
+[PLAN CHAPITRE]
+Chapitre {{ ctx.chapitre.numero }} — {{ ctx.chapitre.titre }}
+Objectif : {{ ctx.chapitre.objectif_narratif }}
+État initial : {{ ctx.chapitre.etat_initial_protagoniste }}
+État final visé : {{ ctx.chapitre.etat_final_protagoniste }}
+{% if ctx.fiches_liees %}
+
+[FICHES LIÉES]
+{% for fiche in ctx.fiches_liees %}
+- {{ fiche.name }} ({{ fiche.type }})
+{% endfor %}
+{% endif %}
+{% if ctx.scenes_precedentes %}
+
+[SCÈNES PRÉCÉDENTES VALIDÉES]
+{% for scene in ctx.scenes_precedentes %}
+{{ scene }}
+{% endfor %}
+{% endif %}
+
+[INSTRUCTION DE L'AUTEUR]
+{{ ctx.instruction }}
+{% if ctx.contraintes %}
+
+[CONTRAINTES]
+{{ ctx.contraintes }}
+{% endif %}
+
+[CONSIGNE]
+Rédige la scène demandée en respectant strictement le manifeste de style ci-dessus. Retourne uniquement la prose, en markdown.

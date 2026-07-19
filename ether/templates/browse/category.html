@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% block content %}
+  <nav aria-label="breadcrumb"><a href="/">Univers</a> / {{ category }}</nav>
+  <h1>{{ category }}</h1>
+
+  <table>
+    <thead>
+      <tr>
+        <th>Nom</th>
+        <th>Type</th>
+        <th>Statut</th>
+        <th>Mis à jour</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for view in items %}
+        <tr>
+          <td>
+            <a href="/item/{{ view.item.id }}">{{ view.item.name }}</a>
+            {% if view.item.is_index %}<span class="tag">index</span>{% endif %}
+          </td>
+          <td>{{ view.item.type }}</td>
+          <td>{{ view.item.status }}</td>
+          <td>{{ view.item.updated }}</td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+{% endblock %}
