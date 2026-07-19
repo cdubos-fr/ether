@@ -1,7 +1,7 @@
 repository:
   name: ether
   description: A tool to manage world building and story writting.
-  homepage: https://github.com/Dev-Oc-Collectif/ether
+  homepage: https://github.com/cdubos-fr/ether
   topics: github, probot
   private: false
   has_issues: true
