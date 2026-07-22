@@ -57,7 +57,10 @@ security = [
 typing = [
     "mypy>=2.1.0",
     "types-setuptools",
-    "ty>=0.0.37",
+    # 0.0.62 regressed inference for SQLModel's session.exec(...).all() (false
+    # invalid-argument-type/invalid-assignment/invalid-return-type on
+    # ether/univers/indexer.py); cap until that's fixed upstream.
+    "ty>=0.0.37,<0.0.62",
 ]
 tests = [
     "pytest>=9.0.3",

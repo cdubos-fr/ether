@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import shutil
 from typing import TYPE_CHECKING
 
 import pytest
@@ -41,8 +40,8 @@ class TestGetSettings:
     ) -> None:
         from ether import config
 
-        shutil.rmtree(project_root / 'config')
         (project_root / 'stories' / 'saga-test' / '_manifest.md').unlink()
+        (project_root / 'univers' / 'lieux' / '_template.md').unlink()
 
         monkeypatch.setenv('ETHER_PROJECT_ROOT', str(project_root))
         config.get_settings.cache_clear()
@@ -52,9 +51,10 @@ class TestGetSettings:
         config.get_settings.cache_clear()
 
         message = str(exc_info.value)
-        assert 'config' in message
         assert 'saga-test' in message
         assert '_manifest.md' in message
+        assert 'lieux' in message
+        assert '_template.md' in message
 
     def test_default_saga_picks_first_alphabetically(self, ether_env: None) -> None:
         from ether.config import get_settings

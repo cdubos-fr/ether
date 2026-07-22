@@ -16,14 +16,50 @@ class TestValidProject:
         assert find_issues(project_root) == []
 
 
-class TestUniversChecks:
-    def test_missing_univers_folder(self, project_root: Path) -> None:
+class TestEmptyIsValid:
+    """Nothing is required to exist upfront: only what's there must be well-formed."""
+
+    def test_brand_new_empty_root_is_valid(self, tmp_path: Path) -> None:
+        root = tmp_path / 'fresh-project'
+        root.mkdir()
+
+        assert find_issues(root) == []
+
+    def test_univers_missing_entirely_is_valid(self, project_root: Path) -> None:
         shutil.rmtree(project_root / 'univers')
 
-        issues = find_issues(project_root)
+        assert find_issues(project_root) == []
 
-        assert any('missing' in issue and 'univers' in issue for issue in issues)
+    def test_stories_missing_entirely_is_valid(self, project_root: Path) -> None:
+        shutil.rmtree(project_root / 'stories')
 
+        assert find_issues(project_root) == []
+
+    def test_univers_with_no_categories_is_valid(self, project_root: Path) -> None:
+        shutil.rmtree(project_root / 'univers' / 'lieux')
+        shutil.rmtree(project_root / 'univers' / 'personnages')
+
+        assert find_issues(project_root) == []
+
+    def test_saga_with_no_tomes_is_valid(self, project_root: Path) -> None:
+        shutil.rmtree(project_root / 'stories' / 'saga-test' / 'tome-1')
+
+        assert find_issues(project_root) == []
+
+    def test_tome_with_no_acts_is_valid(self, project_root: Path) -> None:
+        shutil.rmtree(project_root / 'stories' / 'saga-test' / 'tome-1' / 'act-1')
+
+        assert find_issues(project_root) == []
+
+    def test_act_with_no_chapters_is_valid(self, project_root: Path) -> None:
+        chapter_dir = project_root / 'stories' / 'saga-test' / 'tome-1' / 'act-1' / '_chapter'
+        for chapter in chapter_dir.iterdir():
+            chapter.unlink()
+
+        assert find_issues(project_root) == []
+
+
+class TestUniversChecks:
     def test_category_missing_template(self, project_root: Path) -> None:
         (project_root / 'univers' / 'lieux' / '_template.md').unlink()
 
@@ -40,13 +76,6 @@ class TestUniversChecks:
 
 
 class TestStoriesChecks:
-    def test_missing_stories_folder(self, project_root: Path) -> None:
-        shutil.rmtree(project_root / 'stories')
-
-        issues = find_issues(project_root)
-
-        assert any('missing' in issue and 'stories' in issue for issue in issues)
-
     def test_missing_stories_index(self, project_root: Path) -> None:
         (project_root / 'stories' / '_index.md').unlink()
 
@@ -68,13 +97,6 @@ class TestStoriesChecks:
 
         assert any('tome-1' in issue and '_index.md' in issue for issue in issues)
 
-    def test_act_missing_chapter_dir(self, project_root: Path) -> None:
-        shutil.rmtree(project_root / 'stories' / 'saga-test' / 'tome-1' / 'act-1' / '_chapter')
-
-        issues = find_issues(project_root)
-
-        assert any('tome-1' in issue and 'no act folders' in issue for issue in issues)
-
     def test_act_missing_index(self, project_root: Path) -> None:
         (project_root / 'stories' / 'saga-test' / 'tome-1' / 'act-1' / '_index.md').unlink()
 
@@ -89,29 +111,12 @@ class TestStoriesChecks:
 
         assert any('one-shot-test' in issue and '_index.md' in issue for issue in issues)
 
-    def test_one_shot_act_missing_chapter_dir(self, project_root: Path) -> None:
-        shutil.rmtree(project_root / 'stories' / 'one-shot-test' / 'act-1' / '_chapter')
-
-        issues = find_issues(project_root)
-
-        assert any('one-shot-test' in issue for issue in issues)
-
-
-class TestConfigChecks:
-    def test_missing_config_folder(self, project_root: Path) -> None:
-        shutil.rmtree(project_root / 'config')
-
-        issues = find_issues(project_root)
-
-        assert any('missing' in issue and 'config' in issue for issue in issues)
-
 
 class TestMultipleIssues:
     def test_all_broken_pieces_are_reported_together(self, project_root: Path) -> None:
-        shutil.rmtree(project_root / 'config')
         (project_root / 'stories' / 'saga-test' / '_manifest.md').unlink()
         (project_root / 'univers' / 'lieux' / '_template.md').unlink()
 
         issues = find_issues(project_root)
 
-        assert len(issues) == 3
+        assert len(issues) == 2

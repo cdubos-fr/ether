@@ -384,7 +384,7 @@ dev = [
     { name = "ssort", specifier = ">=0.16.0" },
     { name = "tox", specifier = ">=4.54.0" },
     { name = "tox-uv" },
-    { name = "ty", specifier = ">=0.0.37" },
+    { name = "ty", specifier = ">=0.0.37,<0.0.62" },
     { name = "types-setuptools" },
     { name = "zensical", specifier = ">=0.0.43" },
     { name = "zizmor", specifier = ">=1.25.2" },
@@ -409,7 +409,7 @@ tests = [
 ]
 typing = [
     { name = "mypy", specifier = ">=2.1.0" },
-    { name = "ty", specifier = ">=0.0.37" },
+    { name = "ty", specifier = ">=0.0.37,<0.0.62" },
     { name = "types-setuptools" },
 ]
 
