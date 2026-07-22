@@ -28,6 +28,13 @@ class TestCreateIndex:
         assert 'personnages' in response.text
         assert 'Hero' in response.text
 
+    def test_items_are_grouped_by_category(self, client: TestClient) -> None:
+        response = client.get('/create')
+
+        assert response.status_code == 200
+        assert '<summary>personnages <small>(3)</small></summary>' in response.text
+        assert '<summary>lieux <small>(2)</small></summary>' in response.text
+
     def test_unknown_category_form_is_404(self, client: TestClient) -> None:
         response = client.get('/create/nonexistent')
 

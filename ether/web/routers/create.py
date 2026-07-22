@@ -75,15 +75,18 @@ def _get_item_or_404(item_id: str) -> EtherItem:
 
 @router.get('/create', response_class=HTMLResponse)
 def create_index(request: Request) -> HTMLResponse:
-    """List categories and existing items available for AI-assisted creation."""
+    """List categories and existing items (grouped by category) for AI-assisted creation."""
     settings = get_settings()
     categories = list_categories(settings.univers_path)
     with get_session() as session:
         items = list(session.exec(select(EtherItem).order_by(EtherItem.name)))
+    items_by_category: dict[str, list[EtherItem]] = {}
+    for item in items:
+        items_by_category.setdefault(item.category, []).append(item)
     return templates.TemplateResponse(
         request,
         'create/index.html',
-        {'categories': categories, 'items': items},
+        {'categories': categories, 'items_by_category': sorted(items_by_category.items())},
     )
 
 

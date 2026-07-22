@@ -37,12 +37,19 @@
     <h2>Étendre une fiche existante</h2>
     <article>
       <h3>Nouvelle section</h3>
-      <p><small>Ajoute (ou remplace) une section <code>##</code> précise, sans toucher au reste de la fiche.</small></p>
-      <ul>
-        {% for item in items %}
-          <li><a href="/item/{{ item.id }}/create-section">{{ item.name }}</a> <small>({{ item.category }})</small></li>
-        {% endfor %}
-      </ul>
+      <p><small>Ajoute (ou remplace) une section <code>##</code> précise, sans toucher au reste de la fiche. Choisissez d'abord la catégorie.</small></p>
+      {% for category, items in items_by_category %}
+        <details>
+          <summary>{{ category }} <small>({{ items | length }})</small></summary>
+          <ul>
+            {% for item in items %}
+              <li><a href="/item/{{ item.id }}/create-section">{{ item.name }}</a></li>
+            {% endfor %}
+          </ul>
+        </details>
+      {% else %}
+        <p><small>Aucune fiche pour l'instant.</small></p>
+      {% endfor %}
     </article>
   </section>
 {% endblock %}
