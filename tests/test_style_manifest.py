@@ -106,15 +106,22 @@ class TestFormRoundTrip:
         assert rendered.count('\n- ') <= 1
 
 
+def _manifest_path() -> Path:
+    from ether.config import get_settings
+
+    settings = get_settings()
+    return settings.manifest_path_for(settings.default_saga)
+
+
 class TestStyleRoutes:
-    def test_get_scaffolds_and_shows_manifest(self, client: TestClient, univers_root: Path) -> None:
+    def test_get_scaffolds_and_shows_manifest(self, client: TestClient) -> None:
         response = client.get('/style')
 
         assert response.status_code == 200
-        assert (univers_root / '_manifest.md').is_file()
+        assert _manifest_path().is_file()
         assert 'Règles de prose' in response.text
 
-    def test_post_persists_structured_edits(self, client: TestClient, univers_root: Path) -> None:
+    def test_post_persists_structured_edits(self, client: TestClient) -> None:
         client.get('/style')  # scaffold first, like a real user would
 
         response = client.post(
@@ -134,7 +141,7 @@ class TestStyleRoutes:
         )
 
         assert response.status_code == 303
-        content = (univers_root / '_manifest.md').read_text(encoding='utf-8')
+        content = _manifest_path().read_text(encoding='utf-8')
         assert 'Sombre et sec.' in content
         assert '- **Rythme :** phrases courtes' in content
         assert '- **Dialogue :** sans guillemets' in content

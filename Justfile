@@ -11,7 +11,7 @@ help cmd:
 
 # Start the ether web app (autoreload)
 run:
-    @uv run ether index "$ETHER_UNIVERS_PATH"
+    @uv run ether index "$ETHER_PROJECT_ROOT"
     @uv run ether serve --reload
 
 # Run all checks

@@ -89,7 +89,7 @@ def create_generate(
         )
 
     prompt = compose_item_context(
-        manifest_text=read_manifest(settings.style_manifest_path),
+        manifest_text=read_manifest(settings.manifest_path_for(settings.default_saga)),
         template_skeleton=read_template_skeleton(template_path),
         brief=brief,
         existing_items=existing,
@@ -147,7 +147,7 @@ def create_section_generate(
     settings = get_settings()
 
     prompt = compose_section_context(
-        manifest_text=read_manifest(settings.style_manifest_path),
+        manifest_text=read_manifest(settings.manifest_path_for(settings.default_saga)),
         item=item,
         heading=heading,
         brief=brief,

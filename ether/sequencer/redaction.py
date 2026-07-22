@@ -77,7 +77,7 @@ def compose_redaction_context(
         scenes_precedentes = scenes_precedentes[-2:]
 
     return ContexteRedaction(
-        manifeste=read_manifest(settings.style_manifest_path),
+        manifeste=read_manifest(settings.manifest_path_for(settings.default_saga)),
         chapitre=chapitre,
         fiches_liees=fiches_liees,
         scenes_precedentes=scenes_precedentes,

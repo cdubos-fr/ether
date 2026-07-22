@@ -1,9 +1,10 @@
-"""Application database: the runtime index cache plus the sequencer's operational state.
+"""Application database: the runtime index caches plus the sequencer's operational state.
 
-The univers index tables (`ether.univers.index_models`) are a disposable cache —
-see that module's docstring for the invariant. The sequencer tables
-(`ether.sequencer.models`) are the only tables that hold data with no markdown
-counterpart, and are the only ones migrated via Alembic.
+The univers and stories index tables (`ether.univers.index_models`,
+`ether.stories.index_models`) are disposable caches — see those modules'
+docstrings for the invariant. The sequencer tables (`ether.sequencer.models`)
+are the only tables that hold data with no markdown counterpart, and are the
+only ones migrated via Alembic.
 """
 
 from __future__ import annotations
@@ -40,6 +41,7 @@ def get_engine() -> Engine:
 def _ensure_initialized() -> bool:
     """Create all tables exactly once per process (memoized, see `get_engine`)."""
     from ether.sequencer import models  # noqa: F401
+    from ether.stories import index_models as stories_index_models  # noqa: F401
     from ether.univers import index_models  # noqa: F401
 
     SQLModel.metadata.create_all(get_engine())

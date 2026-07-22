@@ -11,9 +11,11 @@ def _settings(**overrides: object) -> EtherSettings:
     from pathlib import Path
 
     base = {
+        'project_root': Path('/nonexistent'),
         'univers_path': Path('/nonexistent/univers'),
+        'stories_path': Path('/nonexistent/stories'),
+        'config_path': Path('/nonexistent/config'),
         'db_path': Path('/nonexistent/ether.db'),
-        'style_manifest_path': Path('/nonexistent/univers/_manifest.md'),
         'ai_backend': 'stub',
         'gemini_api_key': None,
         'gemini_model': 'gemini-1.5-flash',

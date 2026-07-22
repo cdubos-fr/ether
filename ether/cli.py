@@ -37,24 +37,38 @@ def index_command(
         ...,
         exists=True,
         file_okay=False,
-        help='Univers repo root to index.',
+        help='Project root to index (must contain univers/, stories/, config/).',
     ),
 ) -> None:
-    """Reindex a univers repository into the runtime SQLite cache."""
+    """Reindex a project's univers + stories markdown trees into the runtime SQLite cache."""
     from ether.db import get_session
     from ether.db import init_db
-    from ether.univers.indexer import reindex
+    from ether.project import find_issues
+    from ether.stories.indexer import reindex as reindex_stories
+    from ether.univers.indexer import reindex as reindex_univers
+
+    root = path.resolve()
+    issues = find_issues(root)
+    if issues:
+        typer.echo(f'invalid ether project at {root}:', err=True)
+        for issue in issues:
+            typer.echo(f'  - {issue}', err=True)
+        raise typer.Exit(code=1)
 
     init_db()
     with get_session() as session:
-        stats = reindex(path.resolve(), session)
+        univers_stats = reindex_univers(root / 'univers', session)
+        stories_stats = reindex_stories(root / 'stories', session)
 
-    plural = '' if stats.items == 1 else 's'
+    item_plural = '' if univers_stats.items == 1 else 's'
     typer.echo(
-        f'Indexed {stats.items} item{plural}, {stats.links} link(s) '
-        f'({stats.dangling_links} dangling).',
+        f'univers: indexed {univers_stats.items} item{item_plural}, '
+        f'{univers_stats.links} link(s) ({univers_stats.dangling_links} dangling).',
     )
-    for error in stats.parse_errors:
+    story_plural = '' if stories_stats.items == 1 else 's'
+    typer.echo(f'stories: indexed {stories_stats.items} node{story_plural}.')
+
+    for error in [*univers_stats.parse_errors, *stories_stats.parse_errors]:
         typer.echo(f'  ! {error}', err=True)
 
 

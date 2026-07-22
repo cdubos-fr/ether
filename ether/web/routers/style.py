@@ -31,13 +31,18 @@ def _zip_rules(labels: list[str], contents: list[str]) -> list[ManifestRule]:
 
 @router.get('/style', response_class=HTMLResponse)
 def style_form(request: Request) -> HTMLResponse:
-    """Show the style manifest editor, scaffolding a default form if needed."""
+    """Show the style manifest editor, scaffolding a default form if needed.
+
+    Edits the first saga/one-shot found under `stories/` — an interim
+    stand-in until a real per-saga picker exists (manifests moved from
+    global to per-story; see the "explicitly out of scope" section of the
+    stories-layout plan).
+    """
     settings = get_settings()
-    ensure_manifest(settings.style_manifest_path, settings.univers_path.name)
-    form = parse_markdown(
-        read_manifest(settings.style_manifest_path),
-        fallback_project_name=settings.univers_path.name,
-    )
+    saga = settings.default_saga
+    manifest_path = settings.manifest_path_for(saga)
+    ensure_manifest(manifest_path, saga)
+    form = parse_markdown(read_manifest(manifest_path), fallback_project_name=saga)
     return templates.TemplateResponse(request, 'style/edit.html', {'form': form})
 
 
@@ -65,5 +70,5 @@ def style_submit(
         a_eviter=a_eviter,
         format_sortie=format_sortie,
     )
-    write_manifest(settings.style_manifest_path, render_markdown(form))
+    write_manifest(settings.manifest_path_for(settings.default_saga), render_markdown(form))
     return RedirectResponse(url='/style', status_code=303)
