@@ -10,7 +10,8 @@ scaffold a level's required files atomically at the moment something is
 created under it (the same way `ether.ai.style_manifest.ensure_manifest`
 already scaffolds a manifest lazily) — `find_issues` only catches a level
 that exists but is missing its *own* required files, not a level that simply
-hasn't been created yet.
+hasn't been created yet. A saga/one-shot's `arcs/` folder is entirely
+optional and unstructured — see `_check_story`'s docstring.
 
 `find_issues` never raises — it collects every problem it finds so
 `ether.config.get_settings` can report them all at once instead of
@@ -25,6 +26,7 @@ if TYPE_CHECKING:  # pragma: no cover
     from pathlib import Path
 
 CHAPTER_DIRNAME = '_chapter'
+ARCS_DIRNAME = 'arcs'
 INDEX_FILENAME = '_index.md'
 TEMPLATE_FILENAME = '_template.md'
 MANIFEST_FILENAME = '_manifest.md'
@@ -63,7 +65,14 @@ def _check_tome(tome: Path, issues: list[str]) -> None:
 
 
 def _check_story(story: Path, issues: list[str]) -> None:
-    """Require the saga/one-shot's own `_manifest.md`; it may have zero tomes/acts so far."""
+    """Require the saga/one-shot's own `_manifest.md`; it may have zero tomes/acts so far.
+
+    `arcs/` (if present) is a flat bucket of arc-narratif fiches, one per
+    saga/one-shot regardless of how narrow their scope is (a tome/act/chapter
+    id lives in the arc's own `scope:` field, not in its folder position) —
+    it's excluded from tome detection below the same way `_chapter/` is
+    excluded from act detection.
+    """
     if not (story / MANIFEST_FILENAME).is_file():
         issues.append(f'{story}/ is missing {MANIFEST_FILENAME}')
 
@@ -76,6 +85,8 @@ def _check_story(story: Path, issues: list[str]) -> None:
 
     # Saga shape: this story's subfolders (if any) are tomes, each holding acts.
     for tome in _subdirs(story):
+        if tome.name == ARCS_DIRNAME:
+            continue
         _check_tome(tome, issues)
 
 

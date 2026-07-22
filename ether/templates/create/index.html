@@ -13,6 +13,21 @@
   </article>
 
   <article>
+    <h2>Nouvelle catégorie</h2>
+    <p><small>Crée le dossier, un <code>_index.md</code> et un <code>_template.md</code> scaffoldé.</small></p>
+    <form method="post" action="/create">
+      <div class="grid">
+        <label>Slug (nom de dossier) <input type="text" name="slug" required></label>
+        <label>Nom <input type="text" name="nom" required></label>
+      </div>
+      <label>Type de fiche par défaut (dans le template)
+        <input type="text" name="type_fiche" placeholder="ex: faction, artefact..." required>
+      </label>
+      <button type="submit">Créer la catégorie</button>
+    </form>
+  </article>
+
+  <article>
     <h2>Nouvelle section sur une fiche existante</h2>
     <ul>
       {% for item in items %}

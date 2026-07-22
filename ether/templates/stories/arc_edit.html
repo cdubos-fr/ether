@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% block content %}
+  <nav aria-label="breadcrumb"><a href="/stories">Stories</a> / <a href="/stories/{{ arc.saga }}/arcs">Arcs</a> / <a href="/stories/arcs/{{ arc.id }}">{{ arc.name }}</a> / modifier</nav>
+  <h1>Modifier — {{ arc.name }}</h1>
+  <p><small><code>{{ arc.relative_path }}</code></small></p>
+
+  <form method="post" action="/stories/arcs/{{ arc.id }}/edit">
+    <div class="grid">
+      <label>Titre <input type="text" name="titre" value="{{ meta.name }}" required></label>
+      <label>Type <input type="text" name="type_fiche" value="{{ meta.type }}" required></label>
+      <label>Statut
+        <select name="statut">
+          {% for choice in ['brouillon', 'en cours', 'validé'] %}
+            <option value="{{ choice }}" {% if meta.status == choice %}selected{% endif %}>{{ choice }}</option>
+          {% endfor %}
+        </select>
+      </label>
+    </div>
+    <label>Scope — id d'un tome/acte/chapitre (vide = toute la saga)
+      <input type="text" name="scope" value="{{ meta.scope }}">
+    </label>
+    <label>Fiches liées — ids de l'univers (séparés par des virgules)
+      <input type="text" name="related" value="{{ related_text }}">
+    </label>
+    <label>Corps (markdown)
+      <textarea name="body" rows="20">{{ body }}</textarea>
+    </label>
+    <button type="submit">Enregistrer l'arc</button>
+  </form>
+{% endblock %}

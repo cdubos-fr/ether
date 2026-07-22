@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+{% block content %}
+  <nav aria-label="breadcrumb"><a href="/stories">Stories</a> / <a href="/stories/{{ saga }}">{{ saga }}</a> / Arcs</nav>
+  <h1>Arcs — {{ saga }}</h1>
+  <p><small>Arcs narratifs (personnage, intrigue, thème...) attachés à cette saga/one-shot — <code>scope</code> précise s'ils sont limités à un tome/acte/chapitre, vide s'ils courent sur toute l'histoire.</small></p>
+
+  <table>
+    <thead>
+      <tr><th>Nom</th><th>Type</th><th>Scope</th><th>Statut</th></tr>
+    </thead>
+    <tbody>
+      {% for arc in arcs %}
+        <tr>
+          <td><a href="/stories/arcs/{{ arc.id }}">{{ arc.name }}</a></td>
+          <td>{{ arc.type }}</td>
+          <td>{{ arc.scope if arc.scope else '(toute la saga)' }}</td>
+          <td>{{ arc.status }}</td>
+        </tr>
+      {% else %}
+        <tr><td colspan="4"><small>Aucun arc pour l'instant.</small></td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+  <article>
+    <h2>Nouvel arc</h2>
+    <form method="post" action="/stories/{{ saga }}/arcs">
+      <div class="grid">
+        <label>Slug <input type="text" name="slug" required></label>
+        <label>Titre <input type="text" name="titre" required></label>
+      </div>
+      <div class="grid">
+        <label>Type
+          <select name="type_fiche">
+            <option value="arc-personnage">arc-personnage</option>
+            <option value="arc-intrigue">arc-intrigue</option>
+            <option value="arc-thematique">arc-thematique</option>
+          </select>
+        </label>
+        <label>Scope — id d'un tome/acte/chapitre (vide = toute la saga)
+          <input type="text" name="scope" placeholder="ex: tome-1, tome-1-act-1, chapitre-3">
+        </label>
+      </div>
+      <label>Fiches liées — ids de l'univers (séparés par des virgules)
+        <input type="text" name="related" placeholder="ex: ariane-clermont, alban-dulac">
+      </label>
+      <button type="submit">Créer l'arc</button>
+    </form>
+  </article>
+{% endblock %}

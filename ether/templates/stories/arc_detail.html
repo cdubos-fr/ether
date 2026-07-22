@@ -1,0 +1,10 @@
+{% extends "base.html" %}
+{% block content %}
+  <nav aria-label="breadcrumb"><a href="/stories">Stories</a> / <a href="/stories/{{ arc.saga }}">{{ arc.saga }}</a> / <a href="/stories/{{ arc.saga }}/arcs">Arcs</a> / {{ arc.name }}</nav>
+  <h1>{{ arc.name }} <span class="tag">{{ arc.type }}</span> <span class="tag">{{ arc.status }}</span></h1>
+  <p><small>Scope : {{ arc.scope if arc.scope else '(toute la saga)' }}</small></p>
+
+  <p><a href="/stories/arcs/{{ arc.id }}/edit" role="button">Modifier</a></p>
+
+  <article>{{ body | markdown }}</article>
+{% endblock %}

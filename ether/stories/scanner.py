@@ -12,6 +12,7 @@ from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
 from ether.markdown_io import FrontmatterError
+from ether.project import ARCS_DIRNAME
 from ether.project import CHAPTER_DIRNAME
 from ether.project import INDEX_FILENAME
 from ether.project import is_act_folder
@@ -106,6 +107,52 @@ def _act_folders(path: Path) -> Iterable[Path]:
     return (d for d in _subdirs(path) if is_act_folder(d))
 
 
+def _walk_arcs(
+    story: Path,
+    root: Path,
+    saga: str,
+    nodes: list[RawStoryNode],
+    issues: list[ScanIssue],
+) -> None:
+    arcs_dir = story / ARCS_DIRNAME
+    if not arcs_dir.is_dir():
+        return
+    for arc_path in sorted(arcs_dir.glob('*.md')):
+        _add_node(arc_path, root, saga, '', is_index=False, nodes=nodes, issues=issues)
+
+
+def _walk_one_shot(
+    story: Path,
+    root: Path,
+    saga: str,
+    direct_acts: list[Path],
+    nodes: list[RawStoryNode],
+    issues: list[ScanIssue],
+) -> None:
+    story_index = story / INDEX_FILENAME
+    if story_index.is_file():
+        _add_node(story_index, root, saga, '', is_index=True, nodes=nodes, issues=issues)
+    for act in direct_acts:
+        _walk_act(act, root, saga, '', nodes, issues)
+
+
+def _walk_saga_tomes(
+    story: Path,
+    root: Path,
+    saga: str,
+    nodes: list[RawStoryNode],
+    issues: list[ScanIssue],
+) -> None:
+    for tome in _subdirs(story):
+        if tome.name == ARCS_DIRNAME:
+            continue
+        tome_index = tome / INDEX_FILENAME
+        if tome_index.is_file():
+            _add_node(tome_index, root, saga, tome.name, is_index=True, nodes=nodes, issues=issues)
+        for act in _act_folders(tome):
+            _walk_act(act, root, saga, tome.name, nodes, issues)
+
+
 def walk_repo(root: Path) -> ScanResult:
     """Walk `root` (a project's `stories/` folder) for every story node."""
     nodes: list[RawStoryNode] = []
@@ -119,30 +166,12 @@ def walk_repo(root: Path) -> ScanResult:
 
     for story in _subdirs(root):
         saga = story.name
+        _walk_arcs(story, root, saga, nodes, issues)
+
         direct_acts = list(_act_folders(story))
         if direct_acts:
-            # One-shot shape: the story's own subfolders are acts.
-            story_index = story / INDEX_FILENAME
-            if story_index.is_file():
-                _add_node(story_index, root, saga, '', is_index=True, nodes=nodes, issues=issues)
-            for act in direct_acts:
-                _walk_act(act, root, saga, '', nodes, issues)
-            continue
-
-        # Saga shape: the story's subfolders are tomes, each holding acts.
-        for tome in _subdirs(story):
-            tome_index = tome / INDEX_FILENAME
-            if tome_index.is_file():
-                _add_node(
-                    tome_index,
-                    root,
-                    saga,
-                    tome.name,
-                    is_index=True,
-                    nodes=nodes,
-                    issues=issues,
-                )
-            for act in _act_folders(tome):
-                _walk_act(act, root, saga, tome.name, nodes, issues)
+            _walk_one_shot(story, root, saga, direct_acts, nodes, issues)
+        else:
+            _walk_saga_tomes(story, root, saga, nodes, issues)
 
     return ScanResult(nodes=nodes, issues=issues)

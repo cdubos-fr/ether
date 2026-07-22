@@ -148,6 +148,85 @@ class TestOneShotActChain:
         assert resp.status_code == 400
 
 
+class TestArcs:
+    def test_saga_page_links_to_arcs_with_count(self, client: TestClient) -> None:
+        response = client.get('/stories/saga-test')
+
+        assert response.status_code == 200
+        assert 'Arcs (1)' in response.text
+
+    def test_arcs_index_lists_existing_arc(self, client: TestClient) -> None:
+        response = client.get('/stories/saga-test/arcs')
+
+        assert response.status_code == 200
+        assert 'Arc de Hero' in response.text
+        assert 'tome-1' in response.text
+
+    def test_create_arc_scoped_to_a_tome(self, client: TestClient) -> None:
+        from ether.config import get_settings
+        from ether.stories.frontmatter import parse_file
+
+        settings = get_settings()
+
+        resp = client.post(
+            '/stories/saga-test/arcs',
+            data={
+                'slug': 'arc-2',
+                'titre': 'Nouvel arc',
+                'type_fiche': 'arc-intrigue',
+                'scope': 'tome-1-act-1',
+                'related': 'hero, sidekick',
+            },
+            follow_redirects=False,
+        )
+
+        assert resp.status_code == 303
+        assert resp.headers['location'] == '/stories/arcs/arc-2'
+
+        arc_path = settings.stories_path / 'saga-test' / 'arcs' / 'arc-2.md'
+        assert arc_path.is_file()
+        meta, _ = parse_file(arc_path)
+        assert meta.type == 'arc-intrigue'
+        assert meta.scope == 'tome-1-act-1'
+        assert meta.related == ['hero', 'sidekick']
+
+        assert client.get('/stories/arcs/arc-2').status_code == 200
+
+    def test_duplicate_arc_slug_conflicts(self, client: TestClient) -> None:
+        response = client.post(
+            '/stories/saga-test/arcs',
+            data={'slug': 'arc-1', 'titre': 'x'},
+        )
+
+        assert response.status_code == 409
+
+    def test_edit_arc(self, client: TestClient) -> None:
+        resp = client.post(
+            '/stories/arcs/arc-1/edit',
+            data={
+                'titre': 'Arc de Hero (revu)',
+                'type_fiche': 'arc-personnage',
+                'statut': 'en cours',
+                'scope': 'tome-1-act-1',
+                'related': 'hero',
+                'body': 'Nouveau corps.',
+            },
+            follow_redirects=False,
+        )
+
+        assert resp.status_code == 303
+
+        detail = client.get('/stories/arcs/arc-1')
+        assert 'Arc de Hero (revu)' in detail.text
+        assert 'Nouveau corps' in detail.text
+
+    def test_unknown_arc_is_404(self, client: TestClient) -> None:
+        assert client.get('/stories/arcs/nonexistent').status_code == 404
+
+    def test_unknown_saga_arcs_index_is_404(self, client: TestClient) -> None:
+        assert client.get('/stories/nonexistent/arcs').status_code == 404
+
+
 class TestChapterEdit:
     def test_edit_form_and_submit(self, client: TestClient) -> None:
         chapter_id = 'saga-test-tome-1-act-1-chapitre-1'

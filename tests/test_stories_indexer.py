@@ -21,7 +21,7 @@ class TestReindex:
         with get_session() as session:
             stats = reindex(stories_root, session)
 
-        assert stats.items == 7
+        assert stats.items == 8
         assert stats.parse_errors == []
 
     def test_is_disposable_and_rebuildable(self, ether_env: None, stories_root: Path) -> None:
@@ -50,6 +50,18 @@ class TestReindex:
         assert item.numero == 1
         assert item.etat_initial_protagoniste == 'Ignorant'
         assert item.etat_final_protagoniste == 'Éveillé'
+
+    def test_arc_row_carries_scope(self, stories_indexed: None) -> None:
+        from ether.db import get_session
+
+        with get_session() as session:
+            item = session.get(EtherStoryItem, 'arc-1')
+
+        assert item is not None
+        assert item.saga == 'saga-test'
+        assert item.tome == ''
+        assert item.scope == 'tome-1'
+        assert item.type == 'arc-personnage'
 
 
 class TestReindexOne:

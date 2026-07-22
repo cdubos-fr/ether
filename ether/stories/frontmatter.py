@@ -63,6 +63,7 @@ def to_story_frontmatter(data: Mapping[str, Any]) -> StoryFrontmatter:
         fonction_narrative=str(data.get('fonction_narrative', '')),
         etat_initial_protagoniste=str(data.get('etat_initial_protagoniste', '')),
         etat_final_protagoniste=str(data.get('etat_final_protagoniste', '')),
+        scope=str(data.get('scope', '')),
     )
 
 
@@ -100,6 +101,7 @@ class StoryFrontmatterMapping(TypedDict):
     fonction_narrative: str
     etat_initial_protagoniste: str
     etat_final_protagoniste: str
+    scope: str
 
 
 def new_story_frontmatter_mapping(meta: StoryFrontmatter) -> StoryFrontmatterMapping:
@@ -122,4 +124,5 @@ def new_story_frontmatter_mapping(meta: StoryFrontmatter) -> StoryFrontmatterMap
         fonction_narrative=meta.fonction_narrative,
         etat_initial_protagoniste=meta.etat_initial_protagoniste,
         etat_final_protagoniste=meta.etat_final_protagoniste,
+        scope=meta.scope,
     )

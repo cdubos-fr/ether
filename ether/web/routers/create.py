@@ -32,8 +32,37 @@ from ether.univers.indexer import reindex_one
 from ether.univers.scanner import find_template
 from ether.univers.scanner import list_categories
 from ether.univers.scanner import read_template_skeleton
+from ether.univers.schema import FicheFrontmatter
 
 router = APIRouter()
+
+_DEFAULT_TEMPLATE = """# Template : fiche de {nom}
+
+```yaml
+---
+id: {{{{slug-unique}}}}
+type: {type_fiche}
+name: "{{{{Nom}}}}"
+aliases: []
+status: brouillon
+tags: []
+related: []
+updated: {{{{AAAA-MM-JJ}}}}
+---
+```
+
+```markdown
+# {{{{Nom}}}}
+
+## Description
+
+{{{{À quoi ressemble/qui est ce {nom}.}}}}
+
+## Voir aussi
+
+- {{{{liens vers fiches liées}}}}
+```
+"""
 
 
 def _get_item_or_404(item_id: str) -> EtherItem:
@@ -56,6 +85,33 @@ def create_index(request: Request) -> HTMLResponse:
         'create/index.html',
         {'categories': categories, 'items': items},
     )
+
+
+@router.post('/create')
+def create_category(
+    slug: Annotated[str, Form()],
+    nom: Annotated[str, Form()],
+    type_fiche: Annotated[str, Form()],
+) -> RedirectResponse:
+    """Create a new univers category: its folder + a scaffolded `_index.md` and `_template.md`."""
+    settings = get_settings()
+    category_path = settings.univers_path / slug
+    if category_path.exists():
+        raise HTTPException(status_code=409, detail=f'{slug} already exists')
+    category_path.mkdir(parents=True)
+
+    index_meta = FicheFrontmatter(id=f'{slug}-index', type='concept', name=nom, tags=['index'])
+    relative_path = str(Path(slug) / '_index.md')
+    repository.write_item(settings.univers_path, relative_path, index_meta, f'# {nom}\n')
+    (category_path / '_template.md').write_text(
+        _DEFAULT_TEMPLATE.format(nom=nom, type_fiche=type_fiche),
+        encoding='utf-8',
+    )
+
+    with get_session() as session:
+        reindex_one(settings.univers_path, relative_path, session)
+
+    return RedirectResponse(url=f'/create/{slug}', status_code=303)
 
 
 @router.get('/create/{category}', response_class=HTMLResponse)

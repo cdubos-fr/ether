@@ -34,6 +34,43 @@ class TestCreateIndex:
         assert response.status_code == 404
 
 
+class TestCreateCategory:
+    def test_create_category_scaffolds_index_and_template(
+        self,
+        client: TestClient,
+        univers_root: Path,
+    ) -> None:
+        response = client.post(
+            '/create',
+            data={'slug': 'factions', 'nom': 'Factions', 'type_fiche': 'faction'},
+            follow_redirects=False,
+        )
+
+        assert response.status_code == 303
+        assert response.headers['location'] == '/create/factions'
+
+        category_path = univers_root / 'factions'
+        assert (category_path / '_index.md').is_file()
+        template_text = (category_path / '_template.md').read_text(encoding='utf-8')
+        assert 'type: faction' in template_text
+        assert '{{slug-unique}}' in template_text
+
+    def test_new_category_is_immediately_usable_for_creation(self, client: TestClient) -> None:
+        data = {'slug': 'factions', 'nom': 'Factions', 'type_fiche': 'faction'}
+        client.post('/create', data=data)
+
+        assert client.get('/create/factions').status_code == 200
+        assert 'factions' in client.get('/create').text
+
+    def test_duplicate_category_conflicts(self, client: TestClient) -> None:
+        response = client.post(
+            '/create',
+            data={'slug': 'personnages', 'nom': 'x', 'type_fiche': 'x'},
+        )
+
+        assert response.status_code == 409
+
+
 class TestCreateNewFiche:
     def test_generate_then_save_writes_a_new_file(
         self,

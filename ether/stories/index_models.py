@@ -19,7 +19,7 @@ from sqlmodel import SQLModel
 
 
 class EtherStoryItem(SQLModel, table=True):
-    """One indexed story node (a saga/tome/act's `_index.md`, or a chapter file)."""
+    """One indexed story node: a saga/tome/act `_index.md`, a chapter, or an arc-narratif file."""
 
     id: str = Field(primary_key=True)
     type: str = Field(index=True)
@@ -40,3 +40,4 @@ class EtherStoryItem(SQLModel, table=True):
     fonction_narrative: str = Field(default='')
     etat_initial_protagoniste: str = Field(default='')
     etat_final_protagoniste: str = Field(default='')
+    scope: str = Field(default='', index=True)

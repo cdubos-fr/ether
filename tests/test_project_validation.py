@@ -58,6 +58,16 @@ class TestEmptyIsValid:
 
         assert find_issues(project_root) == []
 
+    def test_saga_with_no_arcs_folder_is_valid(self, project_root: Path) -> None:
+        shutil.rmtree(project_root / 'stories' / 'saga-test' / 'arcs')
+
+        assert find_issues(project_root) == []
+
+    def test_arcs_folder_is_not_validated_as_a_tome(self, project_root: Path) -> None:
+        """A saga's arcs/ folder has no _index.md -- it must never be treated as a tome."""
+        assert find_issues(project_root) == []
+        assert (project_root / 'stories' / 'saga-test' / 'arcs' / '_index.md').is_file() is False
+
 
 class TestUniversChecks:
     def test_category_missing_template(self, project_root: Path) -> None:

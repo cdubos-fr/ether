@@ -50,6 +50,7 @@ def _apply_meta(raw: dict[str, Any], meta: StoryFrontmatter) -> None:
     raw['fonction_narrative'] = meta.fonction_narrative
     raw['etat_initial_protagoniste'] = meta.etat_initial_protagoniste
     raw['etat_final_protagoniste'] = meta.etat_final_protagoniste
+    raw['scope'] = meta.scope
 
 
 def write_node(root: Path, relative_path: str, meta: StoryFrontmatter, body: str) -> None:

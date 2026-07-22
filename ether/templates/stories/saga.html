@@ -2,7 +2,11 @@
 {% block content %}
   <nav aria-label="breadcrumb"><a href="/stories">Stories</a> / {{ saga }}</nav>
   <h1>{{ saga }}</h1>
-  <p><small><a href="/style/{{ saga }}">Manifeste de style</a></small></p>
+  <p>
+    <small><a href="/style/{{ saga }}">Manifeste de style</a></small>
+    &middot;
+    <small><a href="/stories/{{ saga }}/arcs">Arcs ({{ arc_count }})</a></small>
+  </p>
 
   {% if one_shot %}
     <h2>Actes</h2>

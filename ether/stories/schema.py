@@ -20,7 +20,13 @@ from dataclasses import field
 
 @dataclass
 class StoryFrontmatter:
-    """Parsed and validated YAML frontmatter of a single story node."""
+    """Parsed and validated YAML frontmatter of a single story node.
+
+    `scope` is arc-narratif-specific: the id of the story/tome/act/chapter
+    an arc is attached to, or `''` if it spans the whole saga/one-shot.
+    Unused (blank) on every other node type, same as the other optional
+    planning fields below.
+    """
 
     id: str
     type: str
@@ -36,3 +42,4 @@ class StoryFrontmatter:
     fonction_narrative: str = ''
     etat_initial_protagoniste: str = ''
     etat_final_protagoniste: str = ''
+    scope: str = ''

@@ -20,11 +20,27 @@ class TestWalkRepo:
             'saga-test-tome-1',
             'saga-test-tome-1-act-1',
             'saga-test-tome-1-act-1-chapitre-1',
+            'arc-1',
             'one-shot-test-index',
             'one-shot-test-act-1',
             'one-shot-test-act-1-chapitre-1',
         }
         assert result.issues == []
+
+    def test_arc_belongs_to_its_saga_with_no_tome(self, stories_root: Path) -> None:
+        result = scanner.walk_repo(stories_root)
+        by_id = {node.meta.id: node for node in result.nodes}
+
+        arc = by_id['arc-1']
+        assert arc.saga == 'saga-test'
+        assert arc.tome == ''
+        assert arc.meta.scope == 'tome-1'
+
+    def test_arcs_folder_is_not_mistaken_for_a_tome(self, stories_root: Path) -> None:
+        result = scanner.walk_repo(stories_root)
+        ids = {node.meta.id for node in result.nodes}
+
+        assert 'arcs' not in ids
 
     def test_saga_chapter_has_saga_and_tome(self, stories_root: Path) -> None:
         result = scanner.walk_repo(stories_root)

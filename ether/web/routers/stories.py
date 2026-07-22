@@ -26,6 +26,7 @@ from fastapi.responses import RedirectResponse
 from ether.ai.style_manifest import ensure_manifest
 from ether.config import get_settings
 from ether.db import get_session
+from ether.project import ARCS_DIRNAME
 from ether.project import CHAPTER_DIRNAME
 from ether.project import INDEX_FILENAME
 from ether.project import is_act_folder
@@ -90,6 +91,16 @@ def _list_chapters(act_dir: Path) -> list[StoryFrontmatter]:
     nodes = (_read_node(p) for p in sorted(chapter_dir.glob('*.md')))
     metas = [meta for meta in nodes if meta is not None]
     metas.sort(key=lambda meta: meta.numero)
+    return metas
+
+
+def _list_arcs(story_path: Path) -> list[StoryFrontmatter]:
+    arcs_dir = story_path / ARCS_DIRNAME
+    if not arcs_dir.is_dir():
+        return []
+    nodes = (_read_node(p) for p in sorted(arcs_dir.glob('*.md')))
+    metas = [meta for meta in nodes if meta is not None]
+    metas.sort(key=lambda meta: meta.name)
     return metas
 
 
@@ -180,7 +191,13 @@ def saga_detail(request: Request, saga: str) -> HTMLResponse:
     return templates.TemplateResponse(
         request,
         'stories/saga.html',
-        {'saga': saga, 'one_shot': one_shot, 'tomes': tomes, 'acts': acts},
+        {
+            'saga': saga,
+            'one_shot': one_shot,
+            'tomes': tomes,
+            'acts': acts,
+            'arc_count': len(_list_arcs(story_path)),
+        },
     )
 
 
@@ -234,6 +251,99 @@ def create_act_under_saga(
         raise HTTPException(status_code=400, detail=msg)
     _create_act(settings, story_path, saga, '', slug, numero, titre, fonction_narrative)
     return RedirectResponse(url=f'/stories/{saga}', status_code=303)
+
+
+@router.get('/{saga}/arcs', response_class=HTMLResponse)
+def arcs_index(request: Request, saga: str) -> HTMLResponse:
+    """List every arc-narratif attached to this saga/one-shot, plus a create form."""
+    settings = get_settings()
+    story_path = _story_path(settings, saga)
+    arcs = _list_arcs(story_path)
+    return templates.TemplateResponse(request, 'stories/arcs.html', {'saga': saga, 'arcs': arcs})
+
+
+@router.post('/{saga}/arcs')
+def create_arc(
+    saga: str,
+    slug: Annotated[str, Form()],
+    titre: Annotated[str, Form()],
+    type_fiche: Annotated[str, Form()] = 'arc-personnage',
+    scope: Annotated[str, Form()] = '',
+    related: Annotated[str, Form()] = '',
+) -> RedirectResponse:
+    """Create a new arc-narratif, scoped to the whole saga/one-shot or to a narrower id."""
+    settings = get_settings()
+    story_path = _story_path(settings, saga)
+    arc_path = story_path / ARCS_DIRNAME / f'{slug}.md'
+    if arc_path.exists():
+        raise HTTPException(status_code=409, detail=f'{slug} already exists')
+    meta = StoryFrontmatter(
+        id=slug,
+        type=type_fiche,
+        name=titre,
+        scope=scope,
+        related=_split_csv(related),
+    )
+    relative = arc_path.relative_to(settings.stories_path)
+    repository.write_node(settings.stories_path, str(relative), meta, '')
+    with get_session() as session:
+        reindex_one(settings.stories_path, str(relative), saga, '', session)
+    return RedirectResponse(url=f'/stories/arcs/{slug}', status_code=303)
+
+
+@router.get('/arcs/{arc_id}', response_class=HTMLResponse)
+def arc_detail(request: Request, arc_id: str) -> HTMLResponse:
+    """Arc detail: rendered body."""
+    item = _get_story_item_or_404(arc_id)
+    settings = get_settings()
+    _, body = frontmatter.parse_file(settings.stories_path / item.relative_path)
+    return templates.TemplateResponse(
+        request,
+        'stories/arc_detail.html',
+        {'arc': item, 'body': body},
+    )
+
+
+@router.get('/arcs/{arc_id}/edit', response_class=HTMLResponse)
+def arc_edit_form(request: Request, arc_id: str) -> HTMLResponse:
+    """Whole-arc edit form: type/scope/related + body."""
+    item = _get_story_item_or_404(arc_id)
+    settings = get_settings()
+    meta, body = frontmatter.parse_file(settings.stories_path / item.relative_path)
+    return templates.TemplateResponse(
+        request,
+        'stories/arc_edit.html',
+        {'arc': item, 'meta': meta, 'body': body, 'related_text': ', '.join(meta.related)},
+    )
+
+
+@router.post('/arcs/{arc_id}/edit')
+def arc_edit_submit(
+    arc_id: str,
+    titre: Annotated[str, Form()],
+    type_fiche: Annotated[str, Form()],
+    statut: Annotated[str, Form()],
+    body: Annotated[str, Form()],
+    scope: Annotated[str, Form()] = '',
+    related: Annotated[str, Form()] = '',
+) -> RedirectResponse:
+    """Save a whole-arc edit: type/scope/related fields + full body replacement."""
+    item = _get_story_item_or_404(arc_id)
+    settings = get_settings()
+    path = settings.stories_path / item.relative_path
+    current_meta, _current_body = frontmatter.parse_file(path)
+    new_meta = replace(
+        current_meta,
+        name=titre,
+        type=type_fiche,
+        status=statut,
+        scope=scope,
+        related=_split_csv(related),
+    )
+    repository.write_node(settings.stories_path, item.relative_path, new_meta, body)
+    with get_session() as session:
+        reindex_one(settings.stories_path, item.relative_path, item.saga, item.tome, session)
+    return RedirectResponse(url=f'/stories/arcs/{arc_id}', status_code=303)
 
 
 @router.get('/tomes/{tome_id}', response_class=HTMLResponse)

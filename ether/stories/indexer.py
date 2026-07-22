@@ -54,6 +54,7 @@ def _item_from_node(node: RawStoryNode) -> EtherStoryItem:
         fonction_narrative=node.meta.fonction_narrative,
         etat_initial_protagoniste=node.meta.etat_initial_protagoniste,
         etat_final_protagoniste=node.meta.etat_final_protagoniste,
+        scope=node.meta.scope,
     )
 
 
