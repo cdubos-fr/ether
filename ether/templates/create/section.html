@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 {% block content %}
-  <nav aria-label="breadcrumb"><a href="/create">Créer</a> / <a href="/item/{{ item.id }}">{{ item.name }}</a> / nouvelle section</nav>
+  <nav aria-label="breadcrumb"><a href="/create">Atelier</a> / <a href="/item/{{ item.id }}">{{ item.name }}</a> / nouvelle section</nav>
   <h1>Nouvelle section — {{ item.name }}</h1>
 
   <form method="post" action="/item/{{ item.id }}/create-section/generate">

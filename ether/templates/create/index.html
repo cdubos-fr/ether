@@ -1,38 +1,48 @@
 {% extends "base.html" %}
 {% block content %}
-  <h1>Créer</h1>
+  <h1>Atelier de création</h1>
 
-  <article>
-    <h2>Nouvelle fiche</h2>
-    <p>Choisissez une catégorie (il faut un <code>_template.md</code> dans son dossier) :</p>
-    <div class="card-grid">
-      {% for category in categories %}
-        <a href="/create/{{ category }}" role="button" class="outline">{{ category }}</a>
-      {% endfor %}
-    </div>
-  </article>
+  <section>
+    <h2>Créer quelque chose de nouveau</h2>
 
-  <article>
-    <h2>Nouvelle catégorie</h2>
-    <p><small>Crée le dossier, un <code>_index.md</code> et un <code>_template.md</code> scaffoldé.</small></p>
-    <form method="post" action="/create">
-      <div class="grid">
-        <label>Slug (nom de dossier) <input type="text" name="slug" required></label>
-        <label>Nom <input type="text" name="nom" required></label>
+    <article>
+      <h3>Nouvelle fiche</h3>
+      <p>Choisissez une catégorie (il faut un <code>_template.md</code> dans son dossier) :</p>
+      <div class="card-grid">
+        {% for category in categories %}
+          <a href="/create/{{ category }}" role="button" class="outline">{{ category }}</a>
+        {% endfor %}
       </div>
-      <label>Type de fiche par défaut (dans le template)
-        <input type="text" name="type_fiche" placeholder="ex: faction, artefact..." required>
-      </label>
-      <button type="submit">Créer la catégorie</button>
-    </form>
-  </article>
+    </article>
 
-  <article>
-    <h2>Nouvelle section sur une fiche existante</h2>
-    <ul>
-      {% for item in items %}
-        <li><a href="/item/{{ item.id }}/create-section">{{ item.name }}</a> <small>({{ item.category }})</small></li>
-      {% endfor %}
-    </ul>
-  </article>
+    <article>
+      <h3>Nouvelle catégorie</h3>
+      <p><small>Crée le dossier, un <code>_index.md</code> et un <code>_template.md</code> scaffoldé.</small></p>
+      <form method="post" action="/create">
+        <div class="grid">
+          <label>Slug (nom de dossier) <input type="text" name="slug" required></label>
+          <label>Nom <input type="text" name="nom" required></label>
+        </div>
+        <label>Type de fiche par défaut (dans le template)
+          <input type="text" name="type_fiche" placeholder="ex: faction, artefact..." required>
+        </label>
+        <button type="submit">Créer la catégorie</button>
+      </form>
+    </article>
+  </section>
+
+  <hr>
+
+  <section>
+    <h2>Étendre une fiche existante</h2>
+    <article>
+      <h3>Nouvelle section</h3>
+      <p><small>Ajoute (ou remplace) une section <code>##</code> précise, sans toucher au reste de la fiche.</small></p>
+      <ul>
+        {% for item in items %}
+          <li><a href="/item/{{ item.id }}/create-section">{{ item.name }}</a> <small>({{ item.category }})</small></li>
+        {% endfor %}
+      </ul>
+    </article>
+  </section>
 {% endblock %}
