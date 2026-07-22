@@ -1,9 +1,10 @@
 {% extends "base.html" %}
 {% block content %}
-  <h1>Manifeste d'écriture</h1>
+  <nav aria-label="breadcrumb"><a href="/style">Manifestes</a> / {{ saga }}</nav>
+  <h1>Manifeste d'écriture — {{ saga }}</h1>
   <p><small>Injecté tel quel dans les prompts de création et de rédaction — la forme (les sections) est fixe, le contenu est 100% votre voix d'auteur.</small></p>
 
-  <form method="post" action="/style">
+  <form method="post" action="/style/{{ saga }}">
     <label>Nom du projet
       <input type="text" name="project_name" value="{{ form.project_name }}" required>
     </label>

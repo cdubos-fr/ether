@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+{% block content %}
+  <nav aria-label="breadcrumb"><a href="/stories">Stories</a> / {{ saga }}</nav>
+  <h1>{{ saga }}</h1>
+  <p><small><a href="/style/{{ saga }}">Manifeste de style</a></small></p>
+
+  {% if one_shot %}
+    <h2>Actes</h2>
+    <ul>
+      {% for slug, meta in acts %}
+        <li><a href="/stories/actes/{{ meta.id }}">Acte {{ meta.numero }} — {{ meta.name }}</a></li>
+      {% else %}
+        <li><small>Aucun acte pour l'instant.</small></li>
+      {% endfor %}
+    </ul>
+
+    <article>
+      <h2>Nouvel acte</h2>
+      <form method="post" action="/stories/{{ saga }}/actes">
+        <div class="grid">
+          <label>Slug <input type="text" name="slug" required></label>
+          <label>Numéro <input type="number" name="numero" required></label>
+        </div>
+        <label>Titre <input type="text" name="titre" required></label>
+        <label>Fonction narrative <input type="text" name="fonction_narrative"></label>
+        <button type="submit">Créer l'acte</button>
+      </form>
+    </article>
+  {% else %}
+    <h2>Tomes</h2>
+    <ul>
+      {% for slug, meta in tomes %}
+        <li><a href="/stories/tomes/{{ meta.id }}">Tome {{ meta.numero }} — {{ meta.name }}</a></li>
+      {% else %}
+        <li><small>Aucun tome pour l'instant.</small></li>
+      {% endfor %}
+    </ul>
+
+    <article>
+      <h2>Nouveau tome</h2>
+      <form method="post" action="/stories/{{ saga }}/tomes">
+        <div class="grid">
+          <label>Slug <input type="text" name="slug" required></label>
+          <label>Numéro <input type="number" name="numero" required></label>
+        </div>
+        <label>Titre <input type="text" name="titre" required></label>
+        <label>Thème spécifique <input type="text" name="theme_specifique"></label>
+        <label>Question centrale <input type="text" name="question_centrale"></label>
+        <button type="submit">Créer le tome</button>
+      </form>
+    </article>
+  {% endif %}
+{% endblock %}

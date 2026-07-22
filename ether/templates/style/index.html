@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+{% block content %}
+  <h1>Manifestes de style</h1>
+  <p><small>Un manifeste par saga/one-shot — voir <a href="/stories">Stories</a> pour en créer un.</small></p>
+
+  <ul>
+    {% for saga in sagas %}
+      <li><a href="/style/{{ saga }}">{{ saga }}</a></li>
+    {% else %}
+      <li><small>Aucune saga ni one-shot pour l'instant.</small></li>
+    {% endfor %}
+  </ul>
+{% endblock %}

@@ -12,8 +12,7 @@ from ether.paths import STATIC_DIR
 from ether.web.routers import browse
 from ether.web.routers import create
 from ether.web.routers import fiche_edit
-from ether.web.routers import redaction
-from ether.web.routers import sequencer
+from ether.web.routers import stories
 from ether.web.routers import style
 from ether.web.routers import tags
 
@@ -24,8 +23,7 @@ app.include_router(browse.router)
 app.include_router(fiche_edit.router)
 app.include_router(create.router)
 app.include_router(style.router)
-app.include_router(sequencer.router)
-app.include_router(redaction.router)
+app.include_router(stories.router)
 app.include_router(tags.router)
 
 

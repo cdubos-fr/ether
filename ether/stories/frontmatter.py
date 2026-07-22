@@ -30,6 +30,8 @@ if TYPE_CHECKING:  # pragma: no cover
 __all__ = [
     'FrontmatterError',
     'StoryFrontmatterMapping',
+    'coerce_date',
+    'flow_seq',
     'load_raw',
     'new_story_frontmatter_mapping',
     'parse_file',

@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% block content %}
+  <nav aria-label="breadcrumb">
+    <a href="/stories">Stories</a> / <a href="/stories/{{ acte.saga }}">{{ acte.saga }}</a>
+    {% if acte.tome %} / Tome{% endif %} / Acte {{ acte.numero }}
+  </nav>
+  <h1>Acte {{ acte.numero }} — {{ acte.name }}</h1>
+  <p><small>{{ acte.fonction_narrative }}</small></p>
+
+  <h2>Chapitres</h2>
+  <ul>
+    {% for chapitre in chapitres %}
+      <li><a href="/stories/chapters/{{ chapitre.id }}">Chapitre {{ chapitre.numero }} — {{ chapitre.name }}</a> <span class="tag">{{ chapitre.status }}</span></li>
+    {% else %}
+      <li><small>Aucun chapitre pour l'instant.</small></li>
+    {% endfor %}
+  </ul>
+
+  <article>
+    <h2>Nouveau chapitre</h2>
+    <form method="post" action="/stories/actes/{{ acte.id }}/chapters">
+      <div class="grid">
+        <label>Slug <input type="text" name="slug" required></label>
+        <label>Numéro <input type="number" name="numero" required></label>
+      </div>
+      <label>Titre <input type="text" name="titre" required></label>
+      <div class="grid">
+        <label>État initial protagoniste <input type="text" name="etat_initial_protagoniste"></label>
+        <label>État final visé <input type="text" name="etat_final_protagoniste"></label>
+      </div>
+      <label>Fiches liées — ids de l'univers (séparés par des virgules) <input type="text" name="related" placeholder="ex: ariane-clermont, le-concile"></label>
+      <button type="submit">Créer le chapitre</button>
+    </form>
+  </article>
+{% endblock %}

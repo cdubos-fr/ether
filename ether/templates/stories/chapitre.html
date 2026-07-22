@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+{% block content %}
+  <nav aria-label="breadcrumb"><a href="/stories">Stories</a> / <a href="/stories/{{ chapitre.saga }}">{{ chapitre.saga }}</a> / Chapitre {{ chapitre.numero }}</nav>
+  <h1>Chapitre {{ chapitre.numero }} — {{ chapitre.name }} <span class="tag">{{ chapitre.status }}</span></h1>
+  <p><small>État initial : {{ chapitre.etat_initial_protagoniste }} → État final : {{ chapitre.etat_final_protagoniste }}</small></p>
+
+  <p>
+    <a href="/stories/chapters/{{ chapitre.id }}/edit" role="button">Modifier</a>
+    <a href="/stories/chapters/{{ chapitre.id }}/redact" role="button">Rédiger une scène</a>
+  </p>
+
+  <article>{{ body | markdown }}</article>
+{% endblock %}

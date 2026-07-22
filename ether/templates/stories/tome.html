@@ -1,13 +1,14 @@
 {% extends "base.html" %}
 {% block content %}
-  <nav aria-label="breadcrumb"><a href="/sequencer">Séquencier</a> / Tome {{ tome.numero }}</nav>
-  <h1>Tome {{ tome.numero }} — {{ tome.titre }}</h1>
+  <nav aria-label="breadcrumb"><a href="/stories">Stories</a> / <a href="/stories/{{ tome.saga }}">{{ tome.saga }}</a> / Tome {{ tome.numero }}</nav>
+  <h1>Tome {{ tome.numero }} — {{ tome.name }}</h1>
   <p>{{ tome.theme_specifique }}</p>
   <p><small>{{ tome.question_centrale }}</small></p>
 
+  <h2>Actes</h2>
   <ul>
-    {% for acte in actes %}
-      <li><a href="/sequencer/actes/{{ acte.id }}">Acte {{ acte.numero }} — {{ acte.titre }}</a></li>
+    {% for slug, meta in actes %}
+      <li><a href="/stories/actes/{{ meta.id }}">Acte {{ meta.numero }} — {{ meta.name }}</a></li>
     {% else %}
       <li><small>Aucun acte pour l'instant.</small></li>
     {% endfor %}
@@ -15,11 +16,12 @@
 
   <article>
     <h2>Nouvel acte</h2>
-    <form method="post" action="/sequencer/tomes/{{ tome.id }}/actes">
+    <form method="post" action="/stories/tomes/{{ tome.id }}/actes">
       <div class="grid">
+        <label>Slug <input type="text" name="slug" required></label>
         <label>Numéro <input type="number" name="numero" required></label>
-        <label>Titre <input type="text" name="titre" required></label>
       </div>
+      <label>Titre <input type="text" name="titre" required></label>
       <label>Fonction narrative <input type="text" name="fonction_narrative"></label>
       <button type="submit">Créer l'acte</button>
     </form>

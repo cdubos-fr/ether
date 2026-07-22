@@ -106,26 +106,34 @@ class TestFormRoundTrip:
         assert rendered.count('\n- ') <= 1
 
 
-def _manifest_path() -> Path:
+def _manifest_path(saga: str = 'one-shot-test') -> Path:
     from ether.config import get_settings
 
-    settings = get_settings()
-    return settings.manifest_path_for(settings.default_saga)
+    return get_settings().manifest_path_for(saga)
+
+
+class TestStyleIndex:
+    def test_lists_sagas(self, client: TestClient) -> None:
+        response = client.get('/style')
+
+        assert response.status_code == 200
+        assert 'one-shot-test' in response.text
+        assert 'saga-test' in response.text
 
 
 class TestStyleRoutes:
     def test_get_scaffolds_and_shows_manifest(self, client: TestClient) -> None:
-        response = client.get('/style')
+        response = client.get('/style/one-shot-test')
 
         assert response.status_code == 200
         assert _manifest_path().is_file()
         assert 'Règles de prose' in response.text
 
     def test_post_persists_structured_edits(self, client: TestClient) -> None:
-        client.get('/style')  # scaffold first, like a real user would
+        client.get('/style/one-shot-test')  # scaffold first, like a real user would
 
         response = client.post(
-            '/style',
+            '/style/one-shot-test',
             data={
                 'project_name': 'Saga Test',
                 'intention_thematique': 'Le courage.',
@@ -150,9 +158,9 @@ class TestStyleRoutes:
         self,
         client: TestClient,
     ) -> None:
-        client.get('/style')
+        client.get('/style/one-shot-test')
         client.post(
-            '/style',
+            '/style/one-shot-test',
             data={
                 'project_name': 'Saga Test',
                 'regle_label': ['Rythme'],
@@ -160,7 +168,7 @@ class TestStyleRoutes:
             },
         )
 
-        response = client.get('/style')
+        response = client.get('/style/one-shot-test')
 
         assert 'Saga Test' in response.text
         assert 'phrases courtes' in response.text

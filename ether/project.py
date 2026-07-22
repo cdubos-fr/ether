@@ -39,6 +39,16 @@ def _subdirs(path: Path) -> list[Path]:
     return sorted(p for p in path.iterdir() if p.is_dir())
 
 
+def is_one_shot(story: Path) -> bool:
+    """Return whether `story` is one-shot-shaped (its own subfolders are acts directly).
+
+    A saga's subfolders are tomes instead, each holding its own acts one
+    level deeper. Used both by the validator and by the stories web UI to
+    tell the two shapes apart.
+    """
+    return any(is_act_folder(d) for d in _subdirs(story))
+
+
 def _check_act(act: Path, issues: list[str]) -> None:
     if not (act / INDEX_FILENAME).is_file():
         issues.append(f'{act}/ is missing {INDEX_FILENAME}')
@@ -57,18 +67,15 @@ def _check_story(story: Path, issues: list[str]) -> None:
     if not (story / MANIFEST_FILENAME).is_file():
         issues.append(f'{story}/ is missing {MANIFEST_FILENAME}')
 
-    children = _subdirs(story)
-    direct_acts = [d for d in children if is_act_folder(d)]
-    if direct_acts:
-        # One-shot shape: this story's own subfolders are acts.
+    if is_one_shot(story):
         if not (story / INDEX_FILENAME).is_file():
             issues.append(f'{story}/ is missing {INDEX_FILENAME}')
-        for act in direct_acts:
+        for act in (d for d in _subdirs(story) if is_act_folder(d)):
             _check_act(act, issues)
         return
 
     # Saga shape: this story's subfolders (if any) are tomes, each holding acts.
-    for tome in children:
+    for tome in _subdirs(story):
         _check_tome(tome, issues)
 
 

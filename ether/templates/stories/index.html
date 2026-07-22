@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% block content %}
+  <h1>Stories</h1>
+
+  <ul>
+    {% for saga in sagas %}
+      <li><a href="/stories/{{ saga.slug }}">{{ saga.slug }}</a> <span class="tag">{{ saga.kind }}</span></li>
+    {% else %}
+      <li><small>Aucune saga ni one-shot pour l'instant.</small></li>
+    {% endfor %}
+  </ul>
+
+  <article>
+    <h2>Nouvelle saga / one-shot</h2>
+    <form method="post" action="/stories">
+      <div class="grid">
+        <label>Slug (nom de dossier) <input type="text" name="slug" required></label>
+        <label>Nom <input type="text" name="nom" required></label>
+      </div>
+      <label>Type
+        <select name="kind">
+          <option value="saga">Saga (plusieurs tomes)</option>
+          <option value="one-shot">One-shot</option>
+        </select>
+      </label>
+      <button type="submit">Créer</button>
+    </form>
+  </article>
+{% endblock %}

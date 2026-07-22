@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% block content %}
+  <nav aria-label="breadcrumb"><a href="/stories">Stories</a> / <a href="/stories/chapters/{{ chapitre.id }}">{{ chapitre.name }}</a> / rédiger</nav>
+  <h1>Rédaction — Chapitre {{ chapitre.numero }} — {{ chapitre.name }}</h1>
+
+  <form method="post" action="/stories/chapters/{{ chapitre.id }}/redact/generate">
+    <label>Instruction
+      <textarea name="instruction" rows="3" required>{{ instruction }}</textarea>
+    </label>
+    <label>Contraintes
+      <textarea name="contraintes" rows="2">{{ contraintes }}</textarea>
+    </label>
+    <button type="submit">Générer</button>
+  </form>
+
+  {% if draft %}
+    <article>
+      <h2>Brouillon — à relire avant de valider</h2>
+      <form method="post" action="/stories/chapters/{{ chapitre.id }}/redact/append">
+        <textarea name="draft" rows="16">{{ draft }}</textarea>
+        <button type="submit">Ajouter au chapitre</button>
+      </form>
+    </article>
+  {% endif %}
+{% endblock %}

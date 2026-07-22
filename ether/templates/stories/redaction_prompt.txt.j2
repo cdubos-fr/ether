@@ -2,8 +2,7 @@
 {{ ctx.manifeste if ctx.manifeste else "(aucun manifeste défini)" }}
 
 [PLAN CHAPITRE]
-Chapitre {{ ctx.chapitre.numero }} — {{ ctx.chapitre.titre }}
-Objectif : {{ ctx.chapitre.objectif_narratif }}
+Chapitre {{ ctx.chapitre.numero }} — {{ ctx.chapitre.name }}
 État initial : {{ ctx.chapitre.etat_initial_protagoniste }}
 État final visé : {{ ctx.chapitre.etat_final_protagoniste }}
 {% if ctx.fiches_liees %}
@@ -13,12 +12,10 @@ Objectif : {{ ctx.chapitre.objectif_narratif }}
 - {{ fiche.name }} ({{ fiche.type }})
 {% endfor %}
 {% endif %}
-{% if ctx.scenes_precedentes %}
+{% if ctx.corps_actuel_tail %}
 
-[SCÈNES PRÉCÉDENTES VALIDÉES]
-{% for scene in ctx.scenes_precedentes %}
-{{ scene }}
-{% endfor %}
+[FIN DU CHAPITRE JUSQU'ICI]
+{{ ctx.corps_actuel_tail }}
 {% endif %}
 
 [INSTRUCTION DE L'AUTEUR]

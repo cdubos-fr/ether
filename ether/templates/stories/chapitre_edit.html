@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% block content %}
+  <nav aria-label="breadcrumb"><a href="/stories">Stories</a> / <a href="/stories/chapters/{{ chapitre.id }}">{{ chapitre.name }}</a> / modifier</nav>
+  <h1>Modifier — {{ chapitre.name }}</h1>
+  <p><small><code>{{ chapitre.relative_path }}</code></small></p>
+
+  <form method="post" action="/stories/chapters/{{ chapitre.id }}/edit">
+    <div class="grid">
+      <label>Titre <input type="text" name="titre" value="{{ meta.name }}" required></label>
+      <label>Numéro <input type="number" name="numero" value="{{ meta.numero }}" required></label>
+      <label>Statut
+        <select name="statut">
+          {% for choice in ['brouillon', 'en cours', 'validé'] %}
+            <option value="{{ choice }}" {% if meta.status == choice %}selected{% endif %}>{{ choice }}</option>
+          {% endfor %}
+        </select>
+      </label>
+    </div>
+    <div class="grid">
+      <label>État initial protagoniste <input type="text" name="etat_initial_protagoniste" value="{{ meta.etat_initial_protagoniste }}"></label>
+      <label>État final visé <input type="text" name="etat_final_protagoniste" value="{{ meta.etat_final_protagoniste }}"></label>
+    </div>
+    <label>Fiches liées — ids de l'univers (séparés par des virgules)
+      <input type="text" name="related" value="{{ related_text }}">
+    </label>
+    <label>Corps (markdown)
+      <textarea name="body" rows="24">{{ body }}</textarea>
+    </label>
+    <button type="submit">Enregistrer le chapitre</button>
+  </form>
+{% endblock %}
