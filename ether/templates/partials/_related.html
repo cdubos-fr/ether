@@ -1,0 +1,29 @@
+{# Outgoing/backlinks panel shared by browse/item.html and every stories detail page.
+   Expects `outgoing` and `backlinks`: lists of {id, name, url} (url is None when dangling). #}
+<details open>
+  <summary>Related ({{ outgoing | length }})</summary>
+  <ul>
+    {% for link in outgoing %}
+      <li>
+        {% if link.url %}
+          <a href="{{ link.url }}">{{ link.name }}</a>
+        {% else %}
+          <span class="dangling" title="référence introuvable">{{ link.id }} ⚠</span>
+        {% endif %}
+      </li>
+    {% else %}
+      <li><small>Aucun</small></li>
+    {% endfor %}
+  </ul>
+</details>
+
+<details open>
+  <summary>Référencé par ({{ backlinks | length }})</summary>
+  <ul>
+    {% for link in backlinks %}
+      <li><a href="{{ link.url }}">{{ link.name }}</a></li>
+    {% else %}
+      <li><small>Aucun</small></li>
+    {% endfor %}
+  </ul>
+</details>

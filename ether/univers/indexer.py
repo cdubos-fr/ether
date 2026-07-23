@@ -9,9 +9,9 @@ from typing import TYPE_CHECKING
 from sqlmodel import delete
 from sqlmodel import select
 
+from ether import link_graph
 from ether.univers import frontmatter
 from ether.univers.index_models import EtherItem
-from ether.univers.index_models import EtherLink
 from ether.univers.index_models import EtherTag
 from ether.univers.scanner import INDEX_STEM
 from ether.univers.scanner import RawFiche
@@ -62,51 +62,51 @@ def reindex(root: Path, session: Session) -> IndexStats:
     """Fully rebuild the index tables from the markdown tree rooted at `root`."""
     scan = walk_repo(root)
 
-    session.exec(delete(EtherLink))
+    previous_ids = session.exec(select(EtherItem.id)).all()
+    link_graph.delete_links_from(session, previous_ids)
     session.exec(delete(EtherTag))
     session.exec(delete(EtherItem))
 
-    known_ids: set[str] = set()
     for fiche in scan.fiches:
-        item = _item_from_fiche(fiche)
-        session.add(item)
-        known_ids.add(item.id)
+        session.add(_item_from_fiche(fiche))
     session.commit()
 
     link_count = 0
-    dangling_count = 0
+    fiche_ids = set()
     for fiche in scan.fiches:
-        for target in dict.fromkeys(fiche.meta.related):
-            dangling = target not in known_ids
-            session.add(EtherLink(source_id=fiche.meta.id, target_id=target, dangling=dangling))
-            link_count += 1
-            dangling_count += int(dangling)
+        link_graph.replace_source_links(session, fiche.meta.id, fiche.meta.related)
+        link_count += len(set(fiche.meta.related))
+        fiche_ids.add(fiche.meta.id)
         for tag in dict.fromkeys(fiche.meta.tags):
             session.add(EtherTag(item_id=fiche.meta.id, tag=tag))
     session.commit()
+    link_graph.recompute_dangling(session)
+
+    dangling_links = session.exec(
+        select(link_graph.EtherLink).where(
+            link_graph.EtherLink.source_id.in_(fiche_ids),  # type: ignore[attr-defined]  # ty:ignore[unresolved-attribute]
+            link_graph.EtherLink.dangling == True,  # noqa: E712 - SQLAlchemy expression, not a Python bool
+        ),
+    ).all()
 
     return IndexStats(
         items=len(scan.fiches),
         links=link_count,
-        dangling_links=dangling_count,
+        dangling_links=len(dangling_links),
         parse_errors=[f'{issue.path}: {issue.error}' for issue in scan.issues],
     )
 
 
 def backlinks(session: Session, item_id: str) -> list[str]:
     """IDs of items whose `related` list references `item_id`."""
-    rows = session.exec(
-        select(EtherLink.source_id).where(
-            EtherLink.target_id == item_id,
-            EtherLink.dangling == False,  # noqa: E712 - SQLAlchemy expression, not a Python bool
-        ),
-    ).all()
-    return sorted(set(rows))
+    return [view['id'] for view in link_graph.backlink_views(session, item_id)]
 
 
-def outgoing_links(session: Session, item_id: str) -> list[EtherLink]:
+def outgoing_links(session: Session, item_id: str) -> list[link_graph.EtherLink]:
     """`related` references from `item_id`, including dangling ones."""
-    return list(session.exec(select(EtherLink).where(EtherLink.source_id == item_id)).all())
+    return list(
+        session.exec(select(link_graph.EtherLink).where(link_graph.EtherLink.source_id == item_id)),
+    )
 
 
 def list_tags(session: Session) -> list[tuple[str, int]]:
@@ -131,10 +131,9 @@ def items_with_tag(session: Session, tag: str) -> list[EtherItem]:
 def path_index(session: Session) -> dict[str, str]:
     """Map every indexed fiche's repo-relative path to its id.
 
-    Used to rewrite the plain relative markdown-file links fiches use in
-    prose (`[Alice](../../personnages/.../alice.md)`, per the univers repo's
-    own convention) into `/item/{id}` routes at render time — see
-    `ether.univers.linkrewrite`.
+    Kept for callers that only care about univers fiches; prose-link
+    rewriting itself now goes through `ether.link_graph.url_index`, which
+    resolves across both domains.
     """
     rows = session.exec(select(EtherItem.relative_path, EtherItem.id)).all()
     return dict(rows)
@@ -144,9 +143,8 @@ def reindex_one(root: Path, relative_path: str, session: Session) -> EtherItem:
     """Refresh a single fiche's index rows after an in-app edit or creation.
 
     Cheaper than a full `reindex()` for the common case of one file changing;
-    does not revisit other fiches' dangling status (an edit never removes an
-    id another fiche already resolved against, only creation/deletion could,
-    which go through `reindex()`).
+    does not revisit other fiches' dangling status beyond the cross-domain
+    `recompute_dangling` pass below, which is cheap enough to always run.
     """
     path = root / relative_path
     meta, body = frontmatter.parse_file(path)
@@ -165,14 +163,13 @@ def reindex_one(root: Path, relative_path: str, session: Session) -> EtherItem:
         session.delete(existing)
     session.add(item)
 
-    session.exec(delete(EtherLink).where(EtherLink.source_id == item.id))  # type: ignore[arg-type]  # ty:ignore[invalid-argument-type]
-    for target in dict.fromkeys(meta.related):
-        known = session.get(EtherItem, target) is not None
-        session.add(EtherLink(source_id=item.id, target_id=target, dangling=not known))
-
     session.exec(delete(EtherTag).where(EtherTag.item_id == item.id))  # type: ignore[arg-type]  # ty:ignore[invalid-argument-type]
     for tag in dict.fromkeys(meta.tags):
         session.add(EtherTag(item_id=item.id, tag=tag))
-
     session.commit()
+
+    link_graph.replace_source_links(session, item.id, meta.related)
+    session.commit()
+    link_graph.recompute_dangling(session)
+
     return item

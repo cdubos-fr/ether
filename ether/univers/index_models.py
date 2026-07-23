@@ -4,6 +4,10 @@ Invariant: deleting `ether.db` and re-running `ether index <path>` must
 reproduce every row here from the markdown tree with zero data loss. Nothing
 in this module is ever the sole copy of a piece of content — the markdown
 files are always the source of truth (see `ether/univers/frontmatter.py`).
+
+The `related:` link graph lives in `ether.link_graph` instead of here — a
+link's source or target can be a univers fiche *or* a story node, so it isn't
+scoped to this domain.
 """
 
 from __future__ import annotations
@@ -26,18 +30,6 @@ class EtherItem(SQLModel, table=True):
     relative_path: str
     body_excerpt: str = Field(default='')
     is_index: bool = Field(default=False, index=True)
-
-
-class EtherLink(SQLModel, table=True):
-    """A resolved `related:` reference from one fiche to another.
-
-    `target_id` intentionally has no foreign key constraint: a `related` entry
-    may point at an id that doesn't exist (flagged via `dangling`).
-    """
-
-    source_id: str = Field(primary_key=True, foreign_key='etheritem.id')
-    target_id: str = Field(primary_key=True)
-    dangling: bool = Field(default=False)
 
 
 class EtherTag(SQLModel, table=True):

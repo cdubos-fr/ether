@@ -23,6 +23,7 @@ from fastapi import Request
 from fastapi.responses import HTMLResponse
 from fastapi.responses import RedirectResponse
 
+from ether import link_graph
 from ether.ai.style_manifest import ensure_manifest
 from ether.config import get_settings
 from ether.db import get_session
@@ -188,6 +189,16 @@ def saga_detail(request: Request, saga: str) -> HTMLResponse:
     else:
         tomes = _list_dir_nodes(story_path, lambda _d: True)
         acts = []
+
+    outgoing: list[link_graph.LinkView] = []
+    backlinks: list[link_graph.LinkView] = []
+    if one_shot:
+        # A one-shot's own `_index.md` is a real node (id == the saga slug);
+        # a saga-shaped story has no such node, so there's nothing to resolve.
+        with get_session() as session:
+            outgoing = link_graph.outgoing_views(session, saga)
+            backlinks = link_graph.backlink_views(session, saga)
+
     return templates.TemplateResponse(
         request,
         'stories/saga.html',
@@ -197,6 +208,8 @@ def saga_detail(request: Request, saga: str) -> HTMLResponse:
             'tomes': tomes,
             'acts': acts,
             'arc_count': len(_list_arcs(story_path)),
+            'outgoing': outgoing,
+            'backlinks': backlinks,
         },
     )
 
@@ -293,14 +306,21 @@ def create_arc(
 
 @router.get('/arcs/{arc_id}', response_class=HTMLResponse)
 def arc_detail(request: Request, arc_id: str) -> HTMLResponse:
-    """Arc detail: rendered body."""
-    item = _get_story_item_or_404(arc_id)
+    """Arc detail: rendered body, outgoing related links, and computed backlinks."""
     settings = get_settings()
+    with get_session() as session:
+        item = session.get(EtherStoryItem, arc_id)
+        if item is None:
+            raise HTTPException(status_code=404, detail=f'Unknown story item: {arc_id}')
+        outgoing = link_graph.outgoing_views(session, arc_id)
+        backlinks = link_graph.backlink_views(session, arc_id)
+        paths = link_graph.url_index(session)
     _, body = frontmatter.parse_file(settings.stories_path / item.relative_path)
+    body = link_graph.rewrite_relative_links(body, Path('stories') / item.relative_path, paths)
     return templates.TemplateResponse(
         request,
         'stories/arc_detail.html',
-        {'arc': item, 'body': body},
+        {'arc': item, 'body': body, 'outgoing': outgoing, 'backlinks': backlinks},
     )
 
 
@@ -353,7 +373,14 @@ def tome_detail(request: Request, tome_id: str) -> HTMLResponse:
     settings = get_settings()
     tome_path = (settings.stories_path / item.relative_path).parent
     acts = _list_dir_nodes(tome_path, is_act_folder)
-    return templates.TemplateResponse(request, 'stories/tome.html', {'tome': item, 'actes': acts})
+    with get_session() as session:
+        outgoing = link_graph.outgoing_views(session, tome_id)
+        backlinks = link_graph.backlink_views(session, tome_id)
+    return templates.TemplateResponse(
+        request,
+        'stories/tome.html',
+        {'tome': item, 'actes': acts, 'outgoing': outgoing, 'backlinks': backlinks},
+    )
 
 
 @router.post('/tomes/{tome_id}/actes')
@@ -379,10 +406,13 @@ def act_detail(request: Request, act_id: str) -> HTMLResponse:
     settings = get_settings()
     act_path = (settings.stories_path / item.relative_path).parent
     chapitres = _list_chapters(act_path)
+    with get_session() as session:
+        outgoing = link_graph.outgoing_views(session, act_id)
+        backlinks = link_graph.backlink_views(session, act_id)
     return templates.TemplateResponse(
         request,
         'stories/acte.html',
-        {'acte': item, 'chapitres': chapitres},
+        {'acte': item, 'chapitres': chapitres, 'outgoing': outgoing, 'backlinks': backlinks},
     )
 
 
@@ -421,14 +451,21 @@ def create_chapter(
 
 @router.get('/chapters/{chapter_id}', response_class=HTMLResponse)
 def chapter_detail(request: Request, chapter_id: str) -> HTMLResponse:
-    """Chapter detail: rendered body."""
-    item = _get_story_item_or_404(chapter_id)
+    """Chapter detail: rendered body, outgoing related links, and computed backlinks."""
     settings = get_settings()
+    with get_session() as session:
+        item = session.get(EtherStoryItem, chapter_id)
+        if item is None:
+            raise HTTPException(status_code=404, detail=f'Unknown story item: {chapter_id}')
+        outgoing = link_graph.outgoing_views(session, chapter_id)
+        backlinks = link_graph.backlink_views(session, chapter_id)
+        paths = link_graph.url_index(session)
     _, body = frontmatter.parse_file(settings.stories_path / item.relative_path)
+    body = link_graph.rewrite_relative_links(body, Path('stories') / item.relative_path, paths)
     return templates.TemplateResponse(
         request,
         'stories/chapitre.html',
-        {'chapitre': item, 'body': body},
+        {'chapitre': item, 'body': body, 'outgoing': outgoing, 'backlinks': backlinks},
     )
 
 

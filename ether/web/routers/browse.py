@@ -12,15 +12,12 @@ from fastapi import Request
 from fastapi.responses import HTMLResponse
 from sqlmodel import select
 
+from ether import link_graph
 from ether.config import get_settings
 from ether.db import get_session
 from ether.templates import templates
 from ether.univers import frontmatter
 from ether.univers.index_models import EtherItem
-from ether.univers.indexer import backlinks
-from ether.univers.indexer import outgoing_links
-from ether.univers.indexer import path_index
-from ether.univers.linkrewrite import rewrite_relative_links
 
 router = APIRouter()
 
@@ -84,15 +81,12 @@ def item_detail(request: Request, item_id: str) -> HTMLResponse:
         item = session.get(EtherItem, item_id)
         if item is None:
             raise HTTPException(status_code=404, detail=f'Unknown item: {item_id}')
-        out_links = outgoing_links(session, item_id)
-        back_ids = backlinks(session, item_id)
-        wanted_ids = {lnk.target_id for lnk in out_links} | set(back_ids)
-        query = select(EtherItem).where(EtherItem.id.in_(wanted_ids))  # type: ignore[attr-defined]  # ty:ignore[unresolved-attribute]
-        related_items = {i.id: i for i in session.exec(query).all()}
-        paths = path_index(session)
+        outgoing = link_graph.outgoing_views(session, item_id)
+        backlinks = link_graph.backlink_views(session, item_id)
+        paths = link_graph.url_index(session)
 
     _, body = frontmatter.parse_file(settings.univers_path / item.relative_path)
-    body = rewrite_relative_links(body, Path(item.relative_path), paths)
+    body = link_graph.rewrite_relative_links(body, Path('univers') / item.relative_path, paths)
 
     return templates.TemplateResponse(
         request,
@@ -100,10 +94,7 @@ def item_detail(request: Request, item_id: str) -> HTMLResponse:
         {
             **_item_view(item),
             'body': body,
-            'outgoing': [
-                {'target_id': lnk.target_id, 'item': related_items.get(lnk.target_id)}
-                for lnk in out_links
-            ],
-            'backlinks': [{'source_id': bid, 'item': related_items.get(bid)} for bid in back_ids],
+            'outgoing': outgoing,
+            'backlinks': backlinks,
         },
     )

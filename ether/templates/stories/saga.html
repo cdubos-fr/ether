@@ -54,4 +54,8 @@
       </form>
     </article>
   {% endif %}
+
+  {% if one_shot %}
+    {% include "partials/_related.html" %}
+  {% endif %}
 {% endblock %}

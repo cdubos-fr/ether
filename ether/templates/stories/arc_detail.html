@@ -6,5 +6,10 @@
 
   <p><a href="/stories/arcs/{{ arc.id }}/edit" role="button">Modifier</a></p>
 
-  <article>{{ body | markdown }}</article>
+  <div class="item-layout">
+    <article>{{ body | markdown }}</article>
+    <aside>
+      {% include "partials/_related.html" %}
+    </aside>
+  </div>
 {% endblock %}

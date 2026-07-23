@@ -7,7 +7,9 @@ from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
 from sqlmodel import delete
+from sqlmodel import select
 
+from ether import link_graph
 from ether.project import INDEX_FILENAME
 from ether.stories import frontmatter
 from ether.stories.index_models import EtherStoryItem
@@ -62,11 +64,18 @@ def reindex(root: Path, session: Session) -> StoriesIndexStats:
     """Fully rebuild the stories index tables from the markdown tree rooted at `root`."""
     scan = walk_repo(root)
 
+    previous_ids = session.exec(select(EtherStoryItem.id)).all()
+    link_graph.delete_links_from(session, previous_ids)
     session.exec(delete(EtherStoryItem))
 
     for node in scan.nodes:
         session.add(_item_from_node(node))
     session.commit()
+
+    for node in scan.nodes:
+        link_graph.replace_source_links(session, node.meta.id, node.meta.related)
+    session.commit()
+    link_graph.recompute_dangling(session)
 
     return StoriesIndexStats(
         items=len(scan.nodes),
@@ -107,4 +116,9 @@ def reindex_one(
         session.delete(existing)
     session.add(item)
     session.commit()
+
+    link_graph.replace_source_links(session, item.id, meta.related)
+    session.commit()
+    link_graph.recompute_dangling(session)
+
     return item

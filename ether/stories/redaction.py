@@ -13,8 +13,7 @@ import json
 from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
-from sqlmodel import select
-
+from ether import link_graph
 from ether.ai.backends import get_backend
 from ether.ai.style_manifest import read_manifest
 from ether.markdown_io import load_raw
@@ -23,7 +22,6 @@ from ether.stories import frontmatter
 from ether.stories.index_models import EtherStoryItem
 from ether.stories.indexer import reindex_one
 from ether.templates import templates
-from ether.univers.index_models import EtherItem
 
 if TYPE_CHECKING:  # pragma: no cover
     from sqlmodel import Session
@@ -43,7 +41,7 @@ class ContexteRedaction:
 
     manifeste: str
     chapitre: EtherStoryItem
-    fiches_liees: list[EtherItem]
+    fiches_liees: list[link_graph.ResolvedItem]
     corps_actuel_tail: str
     instruction: str
     contraintes: str
@@ -63,10 +61,11 @@ def compose_redaction_context(
         raise RedactionError(msg)
 
     related_ids = json.loads(chapitre.related_json or '[]')
-    fiches_liees: list[EtherItem] = []
-    if related_ids:
-        query = select(EtherItem).where(EtherItem.id.in_(related_ids))  # type: ignore[attr-defined]  # ty:ignore[unresolved-attribute]
-        fiches_liees = list(session.exec(query))
+    fiches_liees = [
+        resolved
+        for target_id in related_ids
+        if (resolved := link_graph.resolve_item(session, target_id)) is not None
+    ]
 
     _, body = frontmatter.parse_file(settings.stories_path / chapitre.relative_path)
     tail = body.strip()[-_BODY_TAIL_LENGTH:]

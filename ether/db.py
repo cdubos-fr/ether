@@ -1,9 +1,10 @@
 """Application database: the runtime index caches for univers and stories.
 
-Both `ether.univers.index_models` and `ether.stories.index_models` are
-disposable caches — see those modules' docstrings for the invariant.
-Markdown is always the source of truth; nothing here is ever the sole copy
-of a piece of content.
+`ether.univers.index_models`, `ether.stories.index_models`, and
+`ether.link_graph` (the cross-domain `related:` graph) are all disposable
+caches — see those modules' docstrings for the invariant. Markdown is always
+the source of truth; nothing here is ever the sole copy of a piece of
+content.
 """
 
 from __future__ import annotations
@@ -39,6 +40,7 @@ def get_engine() -> Engine:
 @lru_cache(maxsize=1)
 def _ensure_initialized() -> bool:
     """Create all tables exactly once per process (memoized, see `get_engine`)."""
+    from ether import link_graph  # noqa: F401
     from ether.stories import index_models as stories_index_models  # noqa: F401
     from ether.univers import index_models  # noqa: F401
 

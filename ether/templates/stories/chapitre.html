@@ -9,5 +9,10 @@
     <a href="/stories/chapters/{{ chapitre.id }}/redact" role="button">Rédiger une scène</a>
   </p>
 
-  <article>{{ body | markdown }}</article>
+  <div class="item-layout">
+    <article>{{ body | markdown }}</article>
+    <aside>
+      {% include "partials/_related.html" %}
+    </aside>
+  </div>
 {% endblock %}

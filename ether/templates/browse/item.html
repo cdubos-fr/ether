@@ -32,33 +32,7 @@
         </ul>
       </details>
 
-      <details open>
-        <summary>Related ({{ outgoing | length }})</summary>
-        <ul>
-          {% for link in outgoing %}
-            <li>
-              {% if link.item %}
-                <a href="/item/{{ link.target_id }}">{{ link.item.name }}</a>
-              {% else %}
-                <span class="dangling" title="référence introuvable">{{ link.target_id }} ⚠</span>
-              {% endif %}
-            </li>
-          {% else %}
-            <li><small>Aucun</small></li>
-          {% endfor %}
-        </ul>
-      </details>
-
-      <details open>
-        <summary>Référencé par ({{ backlinks | length }})</summary>
-        <ul>
-          {% for link in backlinks %}
-            <li><a href="/item/{{ link.source_id }}">{{ link.item.name if link.item else link.source_id }}</a></li>
-          {% else %}
-            <li><small>Aucun</small></li>
-          {% endfor %}
-        </ul>
-      </details>
+      {% include "partials/_related.html" %}
     </aside>
   </div>
 {% endblock %}
