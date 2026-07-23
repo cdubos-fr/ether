@@ -66,6 +66,22 @@ class TestWalkRepo:
         assert by_id['saga-test-tome-1'].is_index is True
         assert by_id['saga-test-tome-1-act-1-chapitre-1'].is_index is False
 
+    def test_finds_a_saga_own_optional_index(self, stories_root: Path) -> None:
+        """A saga's own `_index.md` is optional (unlike a one-shot's) but scanned if present."""
+        saga_index = stories_root / 'saga-test' / '_index.md'
+        saga_index.write_text(
+            '---\nid: saga-test\ntype: saga\nname: "Saga Test"\n---\n\n# Saga Test\n',
+            encoding='utf-8',
+        )
+
+        result = scanner.walk_repo(stories_root)
+        by_id = {node.meta.id: node for node in result.nodes}
+
+        assert 'saga-test' in by_id
+        assert by_id['saga-test'].saga == 'saga-test'
+        assert by_id['saga-test'].tome == ''
+        assert by_id['saga-test'].is_index is True
+
     def test_reports_malformed_chapter_as_issue(self, stories_root: Path) -> None:
         broken = stories_root / 'saga-test' / 'tome-1' / 'act-1' / '_chapter' / 'broken.md'
         broken.write_text('no frontmatter here', encoding='utf-8')

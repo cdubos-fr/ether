@@ -270,8 +270,40 @@ class TestSagaTomeActeEdit:
         detail = client.get('/stories/one-shot-test')
         assert 'One Shot Test (revu)' in detail.text
 
-    def test_cannot_edit_a_saga_with_tomes(self, client: TestClient) -> None:
-        assert client.get('/stories/saga-test/edit').status_code == 400
+    def test_edit_a_saga_scaffolds_its_own_index_on_first_save(self, client: TestClient) -> None:
+        """A saga (unlike a one-shot) has no _index.md until the first edit creates one."""
+        from ether.config import get_settings
+
+        settings = get_settings()
+        index_path = settings.stories_path / 'saga-test' / '_index.md'
+        assert not index_path.exists()
+
+        assert client.get('/stories/saga-test/edit').status_code == 200
+
+        resp = client.post(
+            '/stories/saga-test/edit',
+            data={'nom': 'Saga Test (revu)', 'statut': 'en cours', 'related': 'hero'},
+            follow_redirects=False,
+        )
+        assert resp.status_code == 303
+        assert index_path.is_file()
+
+        detail = client.get('/stories/saga-test')
+        assert 'Saga Test (revu)' in detail.text
+
+    def test_editing_the_saga_again_updates_the_existing_index(self, client: TestClient) -> None:
+        client.post(
+            '/stories/saga-test/edit',
+            data={'nom': 'First', 'statut': 'brouillon', 'related': ''},
+        )
+        client.post(
+            '/stories/saga-test/edit',
+            data={'nom': 'Second', 'statut': 'en cours', 'related': ''},
+        )
+
+        detail = client.get('/stories/saga-test')
+        assert 'Second' in detail.text
+        assert 'First' not in detail.text
 
     def test_edit_tome(self, client: TestClient) -> None:
         tome_id = 'saga-test-tome-1'

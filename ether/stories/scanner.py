@@ -143,6 +143,13 @@ def _walk_saga_tomes(
     nodes: list[RawStoryNode],
     issues: list[ScanIssue],
 ) -> None:
+    # A saga's own `_index.md` is optional (unlike a one-shot's, which is
+    # required) -- there's nothing structural riding on it, it's just an
+    # optional place to give the saga itself a name/status/related distinct
+    # from its folder slug.
+    story_index = story / INDEX_FILENAME
+    if story_index.is_file():
+        _add_node(story_index, root, saga, '', is_index=True, nodes=nodes, issues=issues)
     for tome in _subdirs(story):
         if tome.name == ARCS_DIRNAME:
             continue

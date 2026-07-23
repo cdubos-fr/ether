@@ -2,10 +2,10 @@
 {% block content %}
   <nav aria-label="breadcrumb"><a href="/stories">Stories</a> / {{ saga }}</nav>
   <h1>
-    {{ one_shot_meta.name if one_shot_meta else saga }}
-    {% if one_shot %}<a href="/stories/{{ saga }}/edit" role="button" class="outline" style="font-size: 0.9rem;">Modifier</a>{% endif %}
+    {{ story_meta.name if story_meta else saga }}
+    <a href="/stories/{{ saga }}/edit" role="button" class="outline" style="font-size: 0.9rem;">Modifier</a>
   </h1>
-  {% if one_shot_meta %}<p><span class="tag">{{ one_shot_meta.status }}</span></p>{% endif %}
+  {% if story_meta %}<p><span class="tag">{{ story_meta.status }}</span></p>{% endif %}
   <p>
     <small><a href="/style/{{ saga }}">Manifeste de style</a></small>
     &middot;
@@ -59,7 +59,7 @@
     </article>
   {% endif %}
 
-  {% if one_shot %}
+  {% if story_meta %}
     {% include "partials/_related.html" %}
   {% endif %}
 {% endblock %}

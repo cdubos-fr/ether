@@ -192,11 +192,11 @@ def saga_detail(request: Request, saga: str) -> HTMLResponse:
 
     outgoing: list[link_graph.LinkView] = []
     backlinks: list[link_graph.LinkView] = []
-    one_shot_meta: StoryFrontmatter | None = None
-    if one_shot:
-        # A one-shot's own `_index.md` is a real node (id == the saga slug);
-        # a saga-shaped story has no such node, so there's nothing to resolve.
-        one_shot_meta = _read_node(story_path / INDEX_FILENAME)
+    # A saga/one-shot's own `_index.md` is optional for a saga (there's
+    # nothing structural riding on it, unlike a one-shot's) but either way,
+    # when it exists, id == the saga slug, so it resolves directly.
+    story_meta = _read_node(story_path / INDEX_FILENAME)
+    if story_meta is not None:
         with get_session() as session:
             outgoing = link_graph.outgoing_views(session, saga)
             backlinks = link_graph.backlink_views(session, saga)
@@ -207,7 +207,7 @@ def saga_detail(request: Request, saga: str) -> HTMLResponse:
         {
             'saga': saga,
             'one_shot': one_shot,
-            'one_shot_meta': one_shot_meta,
+            'story_meta': story_meta,
             'tomes': tomes,
             'acts': acts,
             'arc_count': len(_list_arcs(story_path)),
@@ -217,16 +217,22 @@ def saga_detail(request: Request, saga: str) -> HTMLResponse:
     )
 
 
+def _default_saga_meta(saga: str, story_path: Path) -> StoryFrontmatter:
+    kind = 'one-shot' if is_one_shot(story_path) else 'saga'
+    return StoryFrontmatter(id=saga, type=kind, name=saga)
+
+
 @router.get('/{saga}/edit', response_class=HTMLResponse)
 def saga_edit_form(request: Request, saga: str) -> HTMLResponse:
-    """Edit a one-shot's own name/status/related (a saga has no node of its own to edit)."""
+    """Edit a saga/one-shot's own name/status/related.
+
+    Its `_index.md` is scaffolded on first save if it doesn't exist yet
+    (required for a one-shot, optional for a saga) -- same lazy-scaffold
+    pattern as `ether.ai.style_manifest.ensure_manifest`.
+    """
     settings = get_settings()
     story_path = _story_path(settings, saga)
-    if not is_one_shot(story_path):
-        msg = f'{saga} is a saga: there is no node of its own to edit (edit a tome instead)'
-        raise HTTPException(status_code=400, detail=msg)
-    item = _get_story_item_or_404(saga)
-    meta, _body = frontmatter.parse_file(settings.stories_path / item.relative_path)
+    meta = _read_node(story_path / INDEX_FILENAME) or _default_saga_meta(saga, story_path)
     return templates.TemplateResponse(
         request,
         'stories/saga_edit.html',
@@ -241,15 +247,20 @@ def saga_edit_submit(
     statut: Annotated[str, Form()],
     related: Annotated[str, Form()] = '',
 ) -> RedirectResponse:
-    """Save a one-shot's own name/status/related."""
+    """Save a saga/one-shot's own name/status/related, scaffolding `_index.md` if needed."""
     settings = get_settings()
-    item = _get_story_item_or_404(saga)
-    path = settings.stories_path / item.relative_path
-    current_meta, body = frontmatter.parse_file(path)
+    story_path = _story_path(settings, saga)
+    relative = Path(saga) / INDEX_FILENAME
+    path = settings.stories_path / relative
+    if path.is_file():
+        current_meta, body = frontmatter.parse_file(path)
+    else:
+        current_meta = _default_saga_meta(saga, story_path)
+        body = f'# {saga}\n'
     new_meta = replace(current_meta, name=nom, status=statut, related=_split_csv(related))
-    repository.write_node(settings.stories_path, item.relative_path, new_meta, body)
+    repository.write_node(settings.stories_path, str(relative), new_meta, body)
     with get_session() as session:
-        reindex_one(settings.stories_path, item.relative_path, item.saga, item.tome, session)
+        reindex_one(settings.stories_path, str(relative), saga, '', session)
     return RedirectResponse(url=f'/stories/{saga}', status_code=303)
 
 
