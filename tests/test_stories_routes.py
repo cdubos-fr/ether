@@ -254,3 +254,64 @@ class TestChapterEdit:
 
     def test_unknown_chapter_is_404(self, client: TestClient) -> None:
         assert client.get('/stories/chapters/nonexistent').status_code == 404
+
+
+class TestSagaTomeActeEdit:
+    def test_edit_one_shot(self, client: TestClient) -> None:
+        assert client.get('/stories/one-shot-test/edit').status_code == 200
+
+        resp = client.post(
+            '/stories/one-shot-test/edit',
+            data={'nom': 'One Shot Test (revu)', 'statut': 'en cours', 'related': 'hero'},
+            follow_redirects=False,
+        )
+        assert resp.status_code == 303
+
+        detail = client.get('/stories/one-shot-test')
+        assert 'One Shot Test (revu)' in detail.text
+
+    def test_cannot_edit_a_saga_with_tomes(self, client: TestClient) -> None:
+        assert client.get('/stories/saga-test/edit').status_code == 400
+
+    def test_edit_tome(self, client: TestClient) -> None:
+        tome_id = 'saga-test-tome-1'
+        assert client.get(f'/stories/tomes/{tome_id}/edit').status_code == 200
+
+        resp = client.post(
+            f'/stories/tomes/{tome_id}/edit',
+            data={
+                'titre': 'Tome 1 (revu)',
+                'numero': '1',
+                'statut': 'en cours',
+                'theme_specifique': 'nouveau theme',
+                'question_centrale': 'nouvelle question',
+                'related': 'hero',
+            },
+            follow_redirects=False,
+        )
+        assert resp.status_code == 303
+
+        detail = client.get(f'/stories/tomes/{tome_id}')
+        assert 'Tome 1 (revu)' in detail.text
+        assert 'nouveau theme' in detail.text
+
+    def test_edit_acte(self, client: TestClient) -> None:
+        act_id = 'saga-test-tome-1-act-1'
+        assert client.get(f'/stories/actes/{act_id}/edit').status_code == 200
+
+        resp = client.post(
+            f'/stories/actes/{act_id}/edit',
+            data={
+                'titre': 'Acte 1 (revu)',
+                'numero': '1',
+                'statut': 'en cours',
+                'fonction_narrative': 'nouvelle fonction',
+                'related': 'hero',
+            },
+            follow_redirects=False,
+        )
+        assert resp.status_code == 303
+
+        detail = client.get(f'/stories/actes/{act_id}')
+        assert 'Acte 1 (revu)' in detail.text
+        assert 'nouvelle fonction' in detail.text

@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% block content %}
   <nav aria-label="breadcrumb"><a href="/stories">Stories</a> / <a href="/stories/{{ tome.saga }}">{{ tome.saga }}</a> / Tome {{ tome.numero }}</nav>
-  <h1>Tome {{ tome.numero }} — {{ tome.name }}</h1>
+  <h1>Tome {{ tome.numero }} — {{ tome.name }} <a href="/stories/tomes/{{ tome.id }}/edit" role="button" class="outline" style="font-size: 0.9rem;">Modifier</a></h1>
   <p>{{ tome.theme_specifique }}</p>
   <p><small>{{ tome.question_centrale }}</small></p>
 

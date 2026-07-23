@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% block content %}
+  <nav aria-label="breadcrumb"><a href="/stories">Stories</a> / <a href="/stories/{{ acte.saga }}">{{ acte.saga }}</a> / <a href="/stories/actes/{{ acte.id }}">Acte {{ acte.numero }}</a> / modifier</nav>
+  <h1>Modifier — {{ acte.name }}</h1>
+
+  <form method="post" action="/stories/actes/{{ acte.id }}/edit">
+    <div class="grid">
+      <label>Titre <input type="text" name="titre" value="{{ meta.name }}" required></label>
+      <label>Numéro <input type="number" name="numero" value="{{ meta.numero }}" required></label>
+      <label>Statut
+        <select name="statut">
+          {% for choice in ['brouillon', 'en cours', 'validé'] %}
+            <option value="{{ choice }}" {% if meta.status == choice %}selected{% endif %}>{{ choice }}</option>
+          {% endfor %}
+        </select>
+      </label>
+    </div>
+    <label>Fonction narrative <input type="text" name="fonction_narrative" value="{{ meta.fonction_narrative }}"></label>
+    <label>Fiches liées — ids de l'univers (séparés par des virgules)
+      <input type="text" name="related" value="{{ related_text }}">
+    </label>
+    <button type="submit">Enregistrer</button>
+  </form>
+{% endblock %}

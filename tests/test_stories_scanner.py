@@ -21,7 +21,7 @@ class TestWalkRepo:
             'saga-test-tome-1-act-1',
             'saga-test-tome-1-act-1-chapitre-1',
             'arc-1',
-            'one-shot-test-index',
+            'one-shot-test',
             'one-shot-test-act-1',
             'one-shot-test-act-1-chapitre-1',
         }

@@ -74,7 +74,7 @@ class TestResolveAndUrl:
             act = link_graph.resolve_item(session, 'saga-test-tome-1-act-1')
             chapter = link_graph.resolve_item(session, 'saga-test-tome-1-act-1-chapitre-1')
             arc = link_graph.resolve_item(session, 'arc-1')
-            one_shot = link_graph.resolve_item(session, 'one-shot-test-index')
+            one_shot = link_graph.resolve_item(session, 'one-shot-test')
 
             assert tome is not None
             assert act is not None

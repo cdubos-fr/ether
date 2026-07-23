@@ -192,9 +192,11 @@ def saga_detail(request: Request, saga: str) -> HTMLResponse:
 
     outgoing: list[link_graph.LinkView] = []
     backlinks: list[link_graph.LinkView] = []
+    one_shot_meta: StoryFrontmatter | None = None
     if one_shot:
         # A one-shot's own `_index.md` is a real node (id == the saga slug);
         # a saga-shaped story has no such node, so there's nothing to resolve.
+        one_shot_meta = _read_node(story_path / INDEX_FILENAME)
         with get_session() as session:
             outgoing = link_graph.outgoing_views(session, saga)
             backlinks = link_graph.backlink_views(session, saga)
@@ -205,6 +207,7 @@ def saga_detail(request: Request, saga: str) -> HTMLResponse:
         {
             'saga': saga,
             'one_shot': one_shot,
+            'one_shot_meta': one_shot_meta,
             'tomes': tomes,
             'acts': acts,
             'arc_count': len(_list_arcs(story_path)),
@@ -212,6 +215,42 @@ def saga_detail(request: Request, saga: str) -> HTMLResponse:
             'backlinks': backlinks,
         },
     )
+
+
+@router.get('/{saga}/edit', response_class=HTMLResponse)
+def saga_edit_form(request: Request, saga: str) -> HTMLResponse:
+    """Edit a one-shot's own name/status/related (a saga has no node of its own to edit)."""
+    settings = get_settings()
+    story_path = _story_path(settings, saga)
+    if not is_one_shot(story_path):
+        msg = f'{saga} is a saga: there is no node of its own to edit (edit a tome instead)'
+        raise HTTPException(status_code=400, detail=msg)
+    item = _get_story_item_or_404(saga)
+    meta, _body = frontmatter.parse_file(settings.stories_path / item.relative_path)
+    return templates.TemplateResponse(
+        request,
+        'stories/saga_edit.html',
+        {'saga': saga, 'meta': meta, 'related_text': ', '.join(meta.related)},
+    )
+
+
+@router.post('/{saga}/edit')
+def saga_edit_submit(
+    saga: str,
+    nom: Annotated[str, Form()],
+    statut: Annotated[str, Form()],
+    related: Annotated[str, Form()] = '',
+) -> RedirectResponse:
+    """Save a one-shot's own name/status/related."""
+    settings = get_settings()
+    item = _get_story_item_or_404(saga)
+    path = settings.stories_path / item.relative_path
+    current_meta, body = frontmatter.parse_file(path)
+    new_meta = replace(current_meta, name=nom, status=statut, related=_split_csv(related))
+    repository.write_node(settings.stories_path, item.relative_path, new_meta, body)
+    with get_session() as session:
+        reindex_one(settings.stories_path, item.relative_path, item.saga, item.tome, session)
+    return RedirectResponse(url=f'/stories/{saga}', status_code=303)
 
 
 @router.post('/{saga}/tomes')
@@ -383,6 +422,49 @@ def tome_detail(request: Request, tome_id: str) -> HTMLResponse:
     )
 
 
+@router.get('/tomes/{tome_id}/edit', response_class=HTMLResponse)
+def tome_edit_form(request: Request, tome_id: str) -> HTMLResponse:
+    """Whole-tome edit form: numero/theme/question/status/related."""
+    item = _get_story_item_or_404(tome_id)
+    settings = get_settings()
+    meta, _body = frontmatter.parse_file(settings.stories_path / item.relative_path)
+    return templates.TemplateResponse(
+        request,
+        'stories/tome_edit.html',
+        {'tome': item, 'meta': meta, 'related_text': ', '.join(meta.related)},
+    )
+
+
+@router.post('/tomes/{tome_id}/edit')
+def tome_edit_submit(
+    tome_id: str,
+    titre: Annotated[str, Form()],
+    numero: Annotated[int, Form()],
+    statut: Annotated[str, Form()],
+    theme_specifique: Annotated[str, Form()] = '',
+    question_centrale: Annotated[str, Form()] = '',
+    related: Annotated[str, Form()] = '',
+) -> RedirectResponse:
+    """Save a whole-tome edit: planning fields, no body (a tome has no prose of its own)."""
+    item = _get_story_item_or_404(tome_id)
+    settings = get_settings()
+    path = settings.stories_path / item.relative_path
+    current_meta, body = frontmatter.parse_file(path)
+    new_meta = replace(
+        current_meta,
+        name=titre,
+        numero=numero,
+        status=statut,
+        theme_specifique=theme_specifique,
+        question_centrale=question_centrale,
+        related=_split_csv(related),
+    )
+    repository.write_node(settings.stories_path, item.relative_path, new_meta, body)
+    with get_session() as session:
+        reindex_one(settings.stories_path, item.relative_path, item.saga, item.tome, session)
+    return RedirectResponse(url=f'/stories/tomes/{tome_id}', status_code=303)
+
+
 @router.post('/tomes/{tome_id}/actes')
 def create_act_under_tome(
     tome_id: str,
@@ -414,6 +496,47 @@ def act_detail(request: Request, act_id: str) -> HTMLResponse:
         'stories/acte.html',
         {'acte': item, 'chapitres': chapitres, 'outgoing': outgoing, 'backlinks': backlinks},
     )
+
+
+@router.get('/actes/{act_id}/edit', response_class=HTMLResponse)
+def act_edit_form(request: Request, act_id: str) -> HTMLResponse:
+    """Whole-act edit form: numero/fonction_narrative/status/related."""
+    item = _get_story_item_or_404(act_id)
+    settings = get_settings()
+    meta, _body = frontmatter.parse_file(settings.stories_path / item.relative_path)
+    return templates.TemplateResponse(
+        request,
+        'stories/acte_edit.html',
+        {'acte': item, 'meta': meta, 'related_text': ', '.join(meta.related)},
+    )
+
+
+@router.post('/actes/{act_id}/edit')
+def act_edit_submit(
+    act_id: str,
+    titre: Annotated[str, Form()],
+    numero: Annotated[int, Form()],
+    statut: Annotated[str, Form()],
+    fonction_narrative: Annotated[str, Form()] = '',
+    related: Annotated[str, Form()] = '',
+) -> RedirectResponse:
+    """Save a whole-act edit: planning fields, no body (an act has no prose of its own)."""
+    item = _get_story_item_or_404(act_id)
+    settings = get_settings()
+    path = settings.stories_path / item.relative_path
+    current_meta, body = frontmatter.parse_file(path)
+    new_meta = replace(
+        current_meta,
+        name=titre,
+        numero=numero,
+        status=statut,
+        fonction_narrative=fonction_narrative,
+        related=_split_csv(related),
+    )
+    repository.write_node(settings.stories_path, item.relative_path, new_meta, body)
+    with get_session() as session:
+        reindex_one(settings.stories_path, item.relative_path, item.saga, item.tome, session)
+    return RedirectResponse(url=f'/stories/actes/{act_id}', status_code=303)
 
 
 @router.post('/actes/{act_id}/chapters')
